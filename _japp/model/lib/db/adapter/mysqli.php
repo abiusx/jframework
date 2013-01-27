@@ -24,6 +24,7 @@ class DB_mysqli extends BaseDatabase
 	protected $m_databasename;
 
 	public $Charset="utf8";
+	
 	function __construct(DatabaseSetting $db)
 	{
 		if ($db->Username && $db->Username != "")
@@ -31,11 +32,14 @@ class DB_mysqli extends BaseDatabase
 			$this->Connection = new \mysqli ( $db->Host, $db->Username, $db->Password);
 			if (!$this->Connection->select_db($db->DatabaseName))
 			{
-				$this->Initialize($db->DatabaseName);
+				$this->SQL("CREATE DATABASE `{$db->DatabaseName}` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin");
 				$this->Connection = new \mysqli ( $db->Host, $db->Username, $db->Password);
-				if (!$this->Connection->select_db($db->DatabaseName))
+				if (!$res=$this->Connection->select_db($db->DatabaseName))
+				{
 					throw new \Exception("Can not initialize database.");
-			}			
+				}
+				$this->Initialize($db->DatabaseName);
+			}
 			if (mysqli_connect_errno ()) throw new \Exception( "Unable to connect to MySQLi database: ".mysqli_connect_error() );
 			if (isset($this->Charset)) $this->Connection->set_charset($this->Charset);
 		}
@@ -85,15 +89,12 @@ class DB_mysqli extends BaseDatabase
 		return new DB_Statement_mysqli ( $this ,$Query);
 	}
 	
-	function Initialize($DatabaseName)
-	{
-		$CreateDBSQL="CREATE DATABASE `{$DatabaseName}` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
-					USE `{$DatabaseName}`;";
-		$r=$this->Connection->multi_query(
-				$CreateDBSQL.
-				$this->GetInitializationSQL());
-		//FIXME: Commands out of sync because we did not consume the results. even if we do it happens. not on single queries.
-	}
+// 	function Initialize($DatabaseName)
+// 	{
+// 		$this->DropAllTables($DatabaseName);
+// 		$r=$this->Connection->multi_query($this->GetInitializationSQL());
+// 		//FIXME: Commands out of sync because we did not consume the results. even if we do it happens. not on single queries.
+// 	}
 }
 
 

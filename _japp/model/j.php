@@ -19,7 +19,6 @@ class jf
 	{
 		return HttpRequest::Root();
 	}
-	
 	static private $root=null;
 	/**
 	 * Returns jframeworks root folder on filesystem (the one containing app and _japp)
@@ -88,12 +87,12 @@ class jf
 	public static $App;
     /**
      * Session Management object. Session Handling, User management and session management are here.
-     * @var jfUserManager
+     * @var UserManager
      */
     public static $User;
     /**
      * Session Management object. Session Handling, User management and session management are here.
-     * @var jfSessionManager
+     * @var SessionManager
      */
     public static $Session;
     /**
@@ -103,33 +102,27 @@ class jf
     public static $Services;
     /**
      * Web Tracker. Tracks user activities on specific pages of this system.
-     * @var jfProfiler
+     * @var Profiler
      */
     public static $Profiler;
     /**
      * Options Interface. This object allows you to save options for current session, current user and even current application
      * and retrieve them when needed.
-     * @var jfOptionManager
+     * @var SettingManager
      */
     public static $Options;
     /**
      * Log Management. Logs system events, Analyses logs and etc.
-     * @var jfLogManager
+     * @var LogManager
      */
     public static $Log;
     /**
      * Security Interface
      *
-     * @var jfSecurityManager
+     * @var SecurityManager
      */
     public static $Security;
 
-    /**
-     * Registry Interface
-     * @var jRegistry
-     */
-    public static $Registry;
-    
     /**
      * Role Based Access Control
      *
@@ -139,7 +132,7 @@ class jf
     /**
      * ErrorHandler
      *
-     * @var jf\ErrorHandler
+     * @var ErrorHandler
      */
     public static $ErrorHandler;
     

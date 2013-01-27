@@ -144,14 +144,26 @@ abstract class BaseDatabase
 	 */
 	function Initialize($DatabaseName)
 	{
-		$CreateDBSQL="CREATE DATABASE `{$DatabaseName}`;
-					USE `{$DatabaseName}`;";
-		$Query=$CreateDBSQL.$this->GetInitializationSQL();
+// 		$CreateDBSQL="CREATE DATABASE `{$DatabaseName}`;
+// 					USE `{$DatabaseName}`;";
+
+		$this->DropAllTables($DatabaseName);		
+
+		$Query=$this->GetInitializationSQL();
 		$Queries=explode(";",$Query);
 		foreach ($Queries as $Q)
 			$this->query($Q);
 	}
 		
+	protected function DropAllTables($DatabaseName)
+	{
+		$DropTablesQuery=$this->SQL("SELECT table_name
+				FROM information_schema.tables
+				WHERE TABLE_SCHEMA = '{$DatabaseName}'");
+				foreach ($DropTablesQuery as $tableName)
+				$this->SQL("DROP TABLE ".$tableName['table_name']);
+	}
+	
 	protected function GetInitializationSQL()
 	{
 		$Adapter=substr(get_class($this),strlen("jf\\DB_"));

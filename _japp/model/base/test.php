@@ -46,20 +46,28 @@ abstract class TestSuite extends \PHPUnit_Framework_TestCase
 
 abstract class DbTest extends \PHPUnit_Framework_TestCase
 {
+	private static $config=null;
 	/**
 	 * You can override this to provide custom database connection setting
 	 * @returns \jf\DatabaseSetting
 	 */
 	function dbConfig()
 	{
-		$dbConfig=DatabaseManager::Configuration();
-		$dbConfig->DatabaseName.="_test";
-		return $dbConfig;
+		if (self::$config===null)
+		{
+			$dbConfig=DatabaseManager::Configuration();
+			$dbConfig->DatabaseName.="_test";
+			self::$config=$dbConfig;
+		}
+		return self::$config;
 	}
 	function setUp()
 	{
-		jf::SQL("DROP DATABASE ".$this->dbConfig()->DatabaseName);
-		jf::db()->Initialize($this->dbConfig->Database);		
+		jf::db()->Initialize($this->dbConfig()->DatabaseName);
+	}
+	function tearDown()
+	{
+// 		$res=jf::SQL("DROP DATABASE ".$this->dbConfig()->DatabaseName);
 	}
 	
 	private static $initiated=false;

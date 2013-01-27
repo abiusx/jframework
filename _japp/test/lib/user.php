@@ -1,6 +1,13 @@
 <?php
 class LibUserTest extends JDbTest
 {
+	function setUp()
+	{
+		parent::setUp();
+		$res=jf::$User->CreateUser("hasan", "taghi");
+			
+	}
+	
 	function testUser()
 	{
 		$this->assertTrue(true);

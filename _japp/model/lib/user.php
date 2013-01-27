@@ -186,11 +186,11 @@ class UserManager extends Model
 		if ($NewPassword)
 		{
 			$Salt=$this->GenerateSalt();
-			j::SQL ( "UPDATE {$this->TablePrefix}users SET Username=?, Password=?, Salt=? WHERE LOWER(Username)=LOWER(?)", $NewUsername, $this->SafeHashedPassword ( $NewUsername, $NewPassword, $Salt ),$Salt , $OldUsername);
+			j::SQL ( "UPDATE {$this->TablePrefix()}users SET Username=?, Password=?, Salt=? WHERE LOWER(Username)=LOWER(?)", $NewUsername, $this->SafeHashedPassword ( $NewUsername, $NewPassword, $Salt ),$Salt , $OldUsername);
 		}
 		else
 		{
-			j::SQL ( "UPDATE {$this->TablePrefix}users SET Username=? WHERE LOWER(Username)=LOWER(?)", $NewUsername, $OldUsername );
+			j::SQL ( "UPDATE {$this->TablePrefix()}users SET Username=? WHERE LOWER(Username)=LOWER(?)", $NewUsername, $OldUsername );
 		}
 		return true;
 	}
@@ -203,7 +203,7 @@ class UserManager extends Model
 	 */
 	function ValidateUserCredentials($Username, $Password)
 	{
-		$Res=j::SQL("SELECT * FROM {$this->TablePrefix}users WHERE LOWER(username)=?",$Username);
+		$Res=j::SQL("SELECT * FROM {$this->TablePrefix()}users WHERE LOWER(username)=?",$Username);
 		if ($Res)
 			$Salt=$Res[0]['Salt'];
 		else
@@ -252,7 +252,7 @@ class UserManager extends Model
 	 */
 	function UserExists($Username)
 	{
-		return j::SQL ( "SELECT * FROM {$this->TablePrefix}users WHERE LOWER(Username)=LOWER(?)", $Username );
+		return j::SQL ( "SELECT * FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username );
 	}
 
 	/**
@@ -267,7 +267,7 @@ class UserManager extends Model
 		$Result = $this->UserExists ( $Username );
 		if ($Result) return null;
 		$HashedPass=new Password($Username, $Password);
-		$Result = j::SQL ( "INSERT INTO {$this->TablePrefix}users (Username,Password,Salt,Protocl) 
+		$Result = jf::SQL ( "INSERT INTO {$this->TablePrefix()}users (Username,Password,Salt,Protocl) 
 			VALUES (?,?,?,?)", $Username, $HashedPass->HashedPassword(), $HashedPass->Salt(),$HashedPass->Protocol());
 		return $Result;
 	}
