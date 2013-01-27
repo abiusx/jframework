@@ -65,10 +65,6 @@ abstract class DbTest extends \PHPUnit_Framework_TestCase
 	{
 		jf::db()->Initialize($this->dbConfig()->DatabaseName);
 	}
-	function tearDown()
-	{
-// 		$res=jf::SQL("DROP DATABASE ".$this->dbConfig()->DatabaseName);
-	}
 	
 	private static $initiated=false;
 	

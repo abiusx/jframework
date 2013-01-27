@@ -22,9 +22,12 @@ class Password
 	protected $Username;
 	protected $Password;
 	
-	function HashedPassword()
+	/**
+	 * returns the static salt of password generator 
+	 */
+	function StaticSalt()
 	{
-		return $this->Password;
+		return self::$StaticSalt;
 	}
 	/**
 	 * Generate a secure textual password
@@ -74,8 +77,8 @@ class Password
 			$Protocol=$this->Protocol();
 		$this->Username=$Username;
 		if ($Protocol==1)
-			$this->Password=hash("sha512",strtolower($this->Username()).$RawPassword.$this->DynamicSalt().$this->StaticSalt());
-		
+			$this->Password=hash("sha512",strtolower($this->Username()).$RawPassword.$this->Salt().$this->StaticSalt());
+				
 	}
 	
 	/**
@@ -267,8 +270,8 @@ class UserManager extends Model
 		$Result = $this->UserExists ( $Username );
 		if ($Result) return null;
 		$HashedPass=new Password($Username, $Password);
-		$Result = jf::SQL ( "INSERT INTO {$this->TablePrefix()}users (Username,Password,Salt,Protocl) 
-			VALUES (?,?,?,?)", $Username, $HashedPass->HashedPassword(), $HashedPass->Salt(),$HashedPass->Protocol());
+		$Result = jf::SQL ( "INSERT INTO {$this->TablePrefix()}users (Username,Password,Salt,Protocol) 
+			VALUES (?,?,?,?)", $Username, $HashedPass->Password(), $HashedPass->Salt(),$HashedPass->Protocol());
 		return $Result;
 	}
 
