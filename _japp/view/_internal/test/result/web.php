@@ -40,7 +40,7 @@ function DumpResultRows($ResultArray,$BackgroundColor,$Color,$Text,$Odd=false)
 			else
 			{
 				$file=$trace[3]['file'];
-				$line=$trace[0]['line'];
+				$line=$trace[3]['line'];
 			}
 			$dir=substr($file, 0,strlen(jf::root()));
 			$dir=substr($file,0,strpos($file,DIRECTORY_SEPARATOR,strlen($dir)+1));
