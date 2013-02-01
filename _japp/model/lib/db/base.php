@@ -119,7 +119,7 @@ abstract class BaseDatabase
 		$args = func_get_args ();
 		array_shift ( $args );
 		$statement = $this->prepare ( $Query );
-		if (count($args)>1)
+		if (count($args)>=1)
 			call_user_func_array ( array ($statement, "bindAll" ), $args );
 		$statement->execute();
 		$type = substr ( trim ( strtoupper ( $Query ) ), 0, 6 );
