@@ -131,27 +131,32 @@ class LibXUserTest extends JDbTest
 		$UserID=$this->create();
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID));
 		
+		//Not yet activated
 		jf::$XUser->Login("myUsernamE", "myPassword");
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID));
 		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::Inactive);
 		
 		jf::$XUser->Activate($UserID);
 		
+		//invalid credentials
 		jf::$XUser->Login("myUsernamE", "wrong_password");
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID));
 		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::InvalidCredentials);
 
 		
+		//invalid user
 		jf::$XUser->Login("wrong_username", "myPassword");
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID));
 		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::NotFound);
 		
 
+		//locked
 		jf::$XUser->Lock($UserID);
 		jf::$XUser->Login("myUsernamE", "myPassword");
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID),"not activated yet");
 		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::Locked);
 		
+		//valid login
 		$this->assertTrue(jf::$XUser->Unlock($UserID));
 		jf::$XUser->Login("myUsernamE", "myPassword");
 		$this->assertTrue(jf::$XUser->IsLoggedIn($UserID));
@@ -159,20 +164,49 @@ class LibXUserTest extends JDbTest
 		jf::$XUser->Logout($UserID);
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID));
 
+		//try-lock
 		for ($i=0;$i<\jf\ExtendedUserManager::$LockCount+1;++$i)
 			jf::$XUser->Login("myUsername", "wrong_password");
 		jf::$XUser->Login("myUsername", "myPassword");
 		$this->assertFalse(jf::$XUser->IsLoggedIn($UserID),"not activated yet");
 		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::Locked);
 		
+		//time unlock
 		$this->movetime(\jf\ExtendedUserManager::$LockTime+10);
 		jf::$XUser->Login("myUsername", "myPassword");
 		$this->assertTrue(jf::$XUser->IsLoggedIn($UserID),jf::$XUser->LastError());
+		$this->resettime();
 		
+		//time password expire
+		$newID=jf::$XUser->CreateUser("abiusx", "123456","me@abiusx.com");
+		jf::$XUser->Activate($newID);
+		$this->movetime(\jf\ExtendedUserManager::$PasswordLifeTime+10);
+		$this->assertFalse(jf::$XUser->Login("abiusx", "123456"));
+		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::PasswordExpired);
 		
-
 	}
 
-	
+
+	function testExtend()
+	{
+		$rawUser=jf::$User->CreateUser("rawUser", "rawPassword");
+		$this->assertFalse(jf::$XUser->UserIDExists($rawUser));
+		$this->assertTrue(jf::$XUser->Extend($rawUser, "rawuser@email.com"));
+		$this->assertTrue(jf::$XUser->UserIDExists($rawUser));
+	}
+
+	function testResetPassword()
+	{
+		$UserID=$this->create();
+		jf::$XUser->Activate($UserID);
+		$tempPass=jf::$XUser->TemporaryResetPassword($UserID);
+		$this->assertFalse(jf::$XUser->Login("myusername",$tempPass));
+		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::TemporaryValidPassword);
+		
+		$this->movetime(\jf\ExtendedUserManager::$TemporaryPasswordTime+5);
+		$this->assertFalse(jf::$XUser->Login("myusername",$tempPass));
+		$this->assertEquals(jf::$XUser->LastError, \jf\ExtendedUserErrors::InvalidCredentials);
+		
+	}
 
 }

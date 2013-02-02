@@ -21,3 +21,5 @@ INSERT INTO `PREFIX_rbac_userroles` (`UserID`, `RoleID`, `AssignmentDate`) VALUE
 INSERT INTO `PREFIX_users` (`ID`, `Username`, `Password`) VALUES
 (1, 'root', '119ba00fd73711a09fa82177f48f4e4ac32b1e1d73925fc4f654851b617b2a96fd5a5b3095d59b59e5cdfd71312ba3f61195414758478feced69544447360003');
 
+INSERT INTO `PREFIX_xuser` (`ID`,`Email`,`CreateTimestamp`) VALUES
+(1, 'root@localhost','1359814690');

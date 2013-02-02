@@ -48,7 +48,7 @@ class Password
 		if ($Security>.7)
 			$UseSymbols=true;
 		
-		$Length=min($Security*$MaxLen,4);
+		$Length=max($Security*$MaxLen,4);
 		
 		$chars='abcdefghijklmnopqrstuvwxyz';
 		if ($UseUpper)

@@ -21,11 +21,18 @@ abstract class Test extends \PHPUnit_Framework_TestCase
 
 	/**
 	 * Moves time to test timing features
-	 * @param integer $difference optional, do not provide to reset
+	 * @param integer $difference
 	 */
-	function movetime($difference=null)
+	function movetime($difference)
 	{
 		jf::_movetime($difference);
+	}
+	/**
+	 * reset time to actual time
+	 */
+	function resettime()
+	{
+		jf::_movetime(null);
 	}
 }
 
@@ -71,7 +78,7 @@ abstract class DbTest extends Test
 	}
 	function setUp()
 	{
-		$this->movetime();
+		$this->resettime();
 		jf::db()->InitializeData($this->dbConfig()->DatabaseName);
 		jf::$Session->Refresh();
 		

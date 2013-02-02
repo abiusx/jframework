@@ -6,6 +6,8 @@ class ExtendedUserErrors
 	const NotFound=2;
 	const Locked=3;
 	const InvalidCredentials=4;
+	const PasswordExpired=5;
+	const TemporaryValidPassword=6;
 }
 /**
  * This is an extended user manager with support for activation, locking, reset password and etc.
@@ -17,6 +19,7 @@ class ExtendedUserManager extends UserManager
 	public static $LockCount=10;
 	public static $LockTime=3600;
 	public static $TemporaryPasswordTime=3600;
+	public static $PasswordLifeTime=2592000; # one month
 	
 	
 	/**
@@ -49,10 +52,10 @@ class ExtendedUserManager extends UserManager
 	 */
 	function Extend($UserID,$Email)
 	{
-		if (jf::$User->UserIDExists($UserID)) return null;
+		if (!jf::$User->UserIDExists($UserID)) return null;
 		if ($this->UserIDExists($UserID)) return false;
-		jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp) VALUES (?,?,?)",$UserID,$Email,jf::time());
-		
+		$IID=jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp) VALUES (?,?,?)",$UserID,$Email,jf::time());
+		return $IID>0;
 	}
 	/**
 	 * Attempt to login an extended user
@@ -72,23 +75,26 @@ class ExtendedUserManager extends UserManager
 		
 		$UserID=$this->UserID($Username);
 		$Info=$this->UserInfo($UserID);
-		if ($Info['Activated']==0)
+		if ($Info['Activated']==0) #check activation
 		{
 			$this->LastError=ExtendedUserErrors::Inactive;
 			return false;
 		}
-		if ($Info['LockTimeout']>jf::time())
+		if ($Info['LockTimeout']>jf::time()) #check if still locked
 		{
 			$this->LastError=ExtendedUserErrors::Locked;
-// 			$Error='Account Locked for '.date("H:i:s",$Info['LockTimeout']-time());
 			return false;
 		}
-		
-		$R=jf::$User->Login($Username,$Password);
+		if ($Info['TemporaryResetPassword']==$Password and $Info['TemporaryResetPasswordTimeout']>jf::time()) #check temporary pass
+		{
+			$this->LastError=ExtendedUserErrors::TemporaryValidPassword;
+			return false;
+		}
+		$R=jf::$User->ValidateUserCredentials($Username,$Password); #check credentials
 		if (!$R)
 		{
-			$this->IncreaseFailedLoginAttempts($UserID);
-			if ($Info['FailedLoginAttempts']+1>=self::$LockCount)
+			$this->IncreaseFailedLoginAttempts($UserID); 
+			if ($Info['FailedLoginAttempts']+1>=self::$LockCount) #lock if too many attempts
 			{
 				$this->LastError=ExtendedUserErrors::Locked;
 				$this->Lock($UserID);
@@ -97,10 +103,16 @@ class ExtendedUserManager extends UserManager
 			$this->LastError=ExtendedUserErrors::InvalidCredentials;
 			return false;
 		}
-		else
+		else //valid credentials
 		{
+			if ($Info['PasswordChangeTimestamp']<jf::time()) #check password expiry
+			{
+				$this->LastError=ExtendedUserErrors::PasswordExpired;
+				return false;
+			}
+			
 			$this->Reset($UserID);
-			return true;
+			return jf::$User->Login($Username, $Password);
 		}
 	}
 
@@ -212,7 +224,8 @@ class ExtendedUserManager extends UserManager
 			throw new \Exception("You have to provide valid email address.");
 		$IID=jf::$User->CreateUser($Username,$Password);
 		if ($IID===null) return null;
-		jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp) VALUES (?,?,?)",$IID,$Email,jf::time());
+		jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp,PasswordChangeTimestamp) VALUES (?,?,?,?)",
+			$IID,$Email,jf::time(),jf::time()+self::$PasswordLifeTime);
 		return $IID;
 		
 	}
@@ -297,9 +310,22 @@ class ExtendedUserManager extends UserManager
 	}
 	
 	
-	function ResetPassword($UserID)
+	
+	/**
+	 * Sets a temporary reset password for a user, with which the user can log in and change his/her password.
+	 * @param integer $UserID
+	 * @return string temporary password on success, null of failure
+	 */
+	function TemporaryResetPassword($UserID)
 	{
+		$TempPassword=Password::Generate();
 		if (!$this->UserIDExists($UserID)) return false;
+		$res=jf::SQL("UPDATE {$this->TablePrefix()}xuser SET TemporaryResetPassword=?, TemporaryResetPasswordTimeout=? WHERE ID=?"
+				,$TempPassword,jf::time()+self::$TemporaryPasswordTime,$UserID);
+		if ($res>=1)
+			return $TempPassword;
+		else
+			return null;
 		
 	}
 }
