@@ -229,7 +229,7 @@ abstract class BaseDatabaseStatement
 	
 	/**
 	 * 
-	 * return number of result rows
+	 * return number of affected rows by UPDATE, INSERT and DELETE. On some drivers might return number of selected rows.
 	 * @return int
 	 */
 	abstract function rowCount();

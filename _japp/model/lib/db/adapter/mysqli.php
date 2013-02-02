@@ -164,9 +164,8 @@ class DB_Statement_mysqli extends BaseDatabaseStatement
 	function rowCount()
 	{
 		if (!$this->DB) return;
-			return $this->Statement->num_rows;
+			return $this->Statement->affected_rows;
 	}
-
 
 	function fetch()
 	{
