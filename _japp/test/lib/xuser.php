@@ -1,5 +1,5 @@
 <?php
-class LibUserTest extends JDbTest
+class LibXUserTest extends JDbTest
 {
 	function setUp()
 	{
@@ -119,13 +119,6 @@ class LibUserTest extends JDbTest
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
 	}
 
-	function testUserCount()
-	{
-		$this->assertEquals(jf::$User->UserCount(), 1);
-		jf::$User->CreateUser("user2", "123456");
-		$this->assertEquals(jf::$User->UserCount(), 2);
-		
-	}
 	
 
 }

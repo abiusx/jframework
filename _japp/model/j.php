@@ -69,17 +69,22 @@ class jf
 		return \jf\DatabaseManager::Database($Index);		
 	}
 	/**
-	 * 
+	 * FrontController instance. Usually you do not need this.
 	 * @var FrontController
 	 */
 	public static $App;
     /**
-     * Session Management object. Session Handling, User management and session management are here.
+     * User management object. Everything to manage basic users.
      * @var UserManager
      */
     public static $User;
     /**
-     * Session Management object. Session Handling, User management and session management are here.
+     * Extended user management object. These users have activation, locking and etc.
+     * @var ExtendedUserManager
+     */
+    public static $XUser;
+    /**
+     * Session Management object. Session handling is here.
      * @var SessionManager
      */
     public static $Session;
@@ -89,7 +94,7 @@ class jf
      */
     public static $Services;
     /**
-     * Web Tracker. Tracks user activities on specific pages of this system.
+     * Profiler, used for timing different actions. Holds general application times.
      * @var Profiler
      */
     public static $Profiler;
@@ -112,7 +117,7 @@ class jf
     public static $Security;
 
     /**
-     * Role Based Access Control
+     * Role Based Access Control manager
      *
      * @var RBAC
      */

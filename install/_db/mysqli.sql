@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_logs` (
   `SessionID` varchar(64) collate utf8_bin default NULL,
   `Timestamp` int(11) NOT NULL,
   PRIMARY KEY  (`ID`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `PREFIX_logs`
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_permissions` (
   KEY `Title` (`Title`),
   KEY `Left` (`Left`),
   KEY `Right` (`Right`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `PREFIX_rbac_permissions`
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_rolepermissions` (
   `PermissionID` int(11) NOT NULL,
   `AssignmentDate` int(11) NOT NULL,
   PRIMARY KEY  (`RoleID`,`PermissionID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `PREFIX_rbac_rolepermissions`
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_roles` (
   KEY `Title` (`Title`),
   KEY `Left` (`Left`),
   KEY `Right` (`Right`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `PREFIX_rbac_roles`
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_userroles` (
   `RoleID` int(11) NOT NULL,
   `AssignmentDate` int(11) NOT NULL,
   PRIMARY KEY  (`UserID`,`RoleID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `PREFIX_rbac_userroles`
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_users` (
   `Protocol` float collate utf8_bin NOT NULL,
   PRIMARY KEY  (`ID`),
   UNIQUE KEY `Username` (`Username`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=6 ;
 
 --
 -- Dumping data for table `PREFIX_users`
@@ -183,3 +183,17 @@ CREATE TABLE IF NOT EXISTS `PREFIX_users` (
 INSERT INTO `PREFIX_users` (`ID`, `Username`, `Password`) VALUES
 (1, 'root', '119ba00fd73711a09fa82177f48f4e4ac32b1e1d73925fc4f654851b617b2a96fd5a5b3095d59b59e5cdfd71312ba3f61195414758478feced69544447360003');
 
+
+CREATE TABLE IF NOT EXISTS `PREFIX_xuser` (
+  `ID` int(11) NOT NULL,
+  `Email` varchar(256) COLLATE utf8_bin NOT NULL,
+  `PasswordChangeTimestamp` int(11) NOT NULL DEFAULT '0',
+  `TemporaryResetPassword` varchar(256) COLLATE utf8_bin NOT NULL DEFAULT '',
+  `TemporaryResetPasswordTimeout` int(11) NOT NULL DEFAULT '0',
+  `LastLoginTimestamp` int(11) NOT NULL DEFAULT '0',
+  `FailedLoginAttempts` int(11) NOT NULL DEFAULT '0',
+  `LockTimeout` int(16) NOT NULL DEFAULT '0',
+  `Activated` int(11) NOT NULL DEFAULT '0',
+  `CreateTimestamp` int(11) NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

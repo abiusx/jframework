@@ -51,6 +51,7 @@ class Autoload
 				"Profiler"=>"model/lib/profiler",
 				"LogManager"=>"model/lib/log",
 				"UserManager"=>"model/lib/user",
+				"ExtendedUserManager"=>"model/lib/xuser",
 				"SessionManager"=>"model/lib/session",
 				"SecurityManager"=>"model/lib/security",
 				"SettingManager"=>"model/lib/settings",

@@ -147,10 +147,11 @@ class UserManager extends Model
 	/**
     Removes a user form system users if exists
     @param Username of the user
+    @return boolean
 	 */
 	function DeleteUser($Username)
 	{
-		j::SQL ( "DELETE FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username );
+		return (jf::SQL ( "DELETE FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username )>=1);
 	}
 	/**
 	 * Tells whether or not a user is logged in
@@ -243,8 +244,7 @@ class UserManager extends Model
 	Logs in a user if credentials are valid
     @param string $Username of the user
     @param string $Password textual password of the user
-    @return integer UserID on success
-		false on Invalid Credentials
+    @return boolean
 	 */
 	function Login($Username, $Password)
 	{
@@ -324,6 +324,16 @@ class UserManager extends Model
 		else
 			return null;
 		
+	}
+	
+	/**
+	 * Returns total number of users
+	 * @return integer
+	 */
+	function UserCount()
+	{
+		$res=jf::SQL("SELECT COUNT(*) FROM {$this->TablePrefix()}users");
+		return $res[0]['COUNT(*)'];
 	}
 	
 	

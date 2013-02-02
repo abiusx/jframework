@@ -68,6 +68,8 @@ class BaseFrontController
 		
 		jf::$User = new UserManager ();
 		
+		jf::$XUser = new ExtendedUserManager ();
+
 		jf::$Session = new SessionManager ();
 		
 		jf::$Options = new SettingManager ();

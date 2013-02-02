@@ -5,5 +5,6 @@ class LibMainTest extends JTestSuite
 	{
 		$this->add("jf/test/lib/session");
 		$this->add("jf/test/lib/user");
+		$this->add("jf/test/lib/xuser");
 	}
 }
