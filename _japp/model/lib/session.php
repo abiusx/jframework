@@ -48,7 +48,7 @@ class SessionManager extends Model
 		if (count ( $Result ) == 1)
 		{
 			$Result = $Result [0];
-			$this->SetCurrentUser($Result['ID']);
+			$this->SetCurrentUser($Result['UserID']);
 			$LoginDate = $Result ['LoginDate'];
 			$LastAccess = $Result ['LastAccess'];
 			$LoginTimestamp = $LoginDate; //strtotime($LoginDate);

@@ -23,7 +23,9 @@ class View extends Model
 			$templateModule =  $templateModule . DIRECTORY_SEPARATOR. self::$TemplateFolder . DIRECTORY_SEPARATOR. $Template;
 		
 			if (file_exists ( $this->ModuleFile($templateModule) ))
+			{
 				return jf::import($templateModule);
+			}
 		}
 		return false;
 	}
@@ -63,17 +65,17 @@ class View extends Model
 		{
 			$this->ViewModule=$ViewModule;
 			
-			$this->StartBuffering ();
+// 			$this->StartBuffering ();
 			$this->PresentHeader ($ViewModule);
-			$HeadContent = $this->EndBuffering ();
+// 			$HeadContent = $this->EndBuffering ();
 
-			$this->StartBuffering ();
+// 			$this->StartBuffering ();
 			include $this->ModuleFile($ViewModule);
-			$MainContent = $this->EndBuffering ();
+// 			$MainContent = $this->EndBuffering ();
 			
-			$this->StartBuffering ();
+// 			$this->StartBuffering ();
 			$this->PresentFooter ($ViewModule);
-			$FootContent = $this->EndBuffering ();
+// 			$FootContent = $this->EndBuffering ();
 			
 			return true;
 		}

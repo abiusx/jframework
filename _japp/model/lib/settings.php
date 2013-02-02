@@ -6,6 +6,7 @@
  * Saves and Restores options for session,user and application on database.
  *
  */
+#TODO: port to jf4
 //Note: userID = 0 means general option
 namespace jf;
 class SettingManager extends Model
@@ -19,16 +20,16 @@ class SettingManager extends Model
 	private function _Save($Name, $Value, $UserID = 0, $Timeout)
 	{
 		$Datetime = jf::time () + $Timeout;
-		if (!$this->PreparedSaveStatement)    
-	        $this->PreparedSaveStatement=$this->DB->Prepare( "REPLACE INTO {$this->TablePrefix}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
-	    $this->PreparedSaveStatement->Execute( $Name, serialize ( $Value ), $UserID, $Datetime );
+		if ($this->PreparedSaveStatement===null)    
+	        $this->PreparedSaveStatement=jf::db()->prepare( "REPLACE INTO {$this->TablePrefix()}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
+	    $this->PreparedSaveStatement->execute( $Name, serialize ( $Value ), $UserID, $Datetime );
 		$this->_Sweep ();
 	}
 	private function _Delete($Name, $UserID = 0)
 	{
-	    if (!$this->PreparedDeleteStatement)    
-	        $this->PreparedDeleteStatement=$this->DB->Prepare( "DELETE FROM {$this->TablePrefix}options  WHERE UserID=? AND Name=?");
-	    $this->PreparedDeleteStatement->Execute($UserID, $Name);
+	    if ($this->PreparedDeleteStatement===null)    
+	        $this->PreparedDeleteStatement=jf::db()->prepare( "DELETE FROM {$this->TablePrefix()}options  WHERE UserID=? AND Name=?");
+	    $this->PreparedDeleteStatement->execute($UserID, $Name);
 	}
 	/**
 	 * Loads an option from the database
@@ -40,10 +41,10 @@ class SettingManager extends Model
 	private function _Load($Name, $UserID = 0)
 	{
 	    $this->_Sweep ();
-	    if (!$this->PreparedLoadStatement)    
-	        $this->PreparedLoadStatement=$this->DB->Prepare("SELECT Value FROM {$this->TablePrefix}options WHERE UserID=? AND Name=?");
-	    $this->PreparedLoadStatement->Execute($UserID, $Name);
-	    $Res=$this->PreparedLoadStatement->AllResult();
+	    if ($this->PreparedLoadStatement===null)    
+	        $this->PreparedLoadStatement=jf::db()->prepare("SELECT Value FROM {$this->TablePrefix()}options WHERE UserID=? AND Name=?");
+	    $this->PreparedLoadStatement->execute($UserID, $Name);
+	    $Res=$this->PreparedLoadStatement->fetchAll();
 	    if ($Res )
 		{
 		    return unserialize ( $Res [0] ['Value'] );
@@ -54,21 +55,21 @@ class SettingManager extends Model
 	private function _LoadSet($Prefix,$UserID=0)
 	{
 	    $this->_Sweep ();
-	    if (!$this->PreparedLoadSetStatement)    
-	        $this->PreparedLoadSetStatement=$this->DB->Prepare("SELECT * FROM {$this->TablePrefix}options WHERE UserID=? AND Name LIKE ?");
-	    $this->PreparedLoadStatement->Execute($UserID, $Prefix);
-	    $Res=$this->PreparedLoadStatement->AllResult();
+	    if ($this->PreparedLoadSetStatement===null)    
+	        $this->PreparedLoadSetStatement=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE UserID=? AND Name LIKE ?");
+	    $this->PreparedLoadStatement->execute($UserID, $Prefix);
+	    $Res=$this->PreparedLoadStatement->fetchAll();
 		return $Res;
 	}
 	private function _Sweep()
 	{
 		
-		if (rand ( 0, 1000 ) / 1000.0 > reg("jf/options/SweepRatio"))
+		if (rand ( 0, 1000 ) / 1000.0 > .1)
 			return; //percentage of SweepRatio, don't always do this when called
 
-	    if (!$this->PreparedSweepStatement)    
-	        $this->PreparedSweepStatement=$this->DB->Prepare("DELETE FROM {$this->TablePrefix}options WHERE Expiration<=?");
-	    $this->PreparedSweepStatement->Execute(jf::time());
+	    if ($this->PreparedSweepStatement===null)    
+	        $this->PreparedSweepStatement=jf::db()->prepare("DELETE FROM {$this->TablePrefix()}options WHERE Expiration<=?");
+	    $this->PreparedSweepStatement->execute(jf::time());
 			
 	
 	}

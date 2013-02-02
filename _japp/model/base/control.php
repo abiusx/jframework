@@ -117,10 +117,13 @@ abstract class Controller extends Model
 	{
 		$modulename=$this->ModuleName();
 		$Parts=explode("/",$modulename);
-		array_shift($Parts);
-
+		$x=array_shift($Parts);
+		if ($x=="jf")
+			array_shift($Parts); //get control/ off
 		array_unshift($Parts,$this->GetCurrentView());
 		array_unshift($Parts,"view");
+		if ($x=="jf")
+			array_unshift($Parts,"jf");
 		return implode("/",$Parts);
 	}
 	

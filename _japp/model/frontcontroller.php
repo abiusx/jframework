@@ -72,7 +72,7 @@ class BaseFrontController
 
 		jf::$Session = new SessionManager ();
 		
-		jf::$Options = new SettingManager ();
+		jf::$Settings = new SettingManager ();
 		
 		jf::$Security = new SecurityManager ();
 		

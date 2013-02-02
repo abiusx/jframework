@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_permissions` (
   KEY `Title` (`Title`),
   KEY `Left` (`Left`),
   KEY `Right` (`Right`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `PREFIX_rbac_permissions`
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_rolepermissions` (
   `PermissionID` int(11) NOT NULL,
   `AssignmentDate` int(11) NOT NULL,
   PRIMARY KEY  (`RoleID`,`PermissionID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 --
 -- Dumping data for table `PREFIX_rbac_rolepermissions`
@@ -107,14 +107,8 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_roles` (
   KEY `Title` (`Title`),
   KEY `Left` (`Left`),
   KEY `Right` (`Right`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
---
--- Dumping data for table `PREFIX_rbac_roles`
---
-
-INSERT INTO `PREFIX_rbac_roles` (`ID`, `Left`, `Right`, `Title`, `Description`) VALUES
-(0, 1, 2, 'root', 'root');
 
 -- --------------------------------------------------------
 
@@ -127,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_userroles` (
   `RoleID` int(11) NOT NULL,
   `AssignmentDate` int(11) NOT NULL,
   PRIMARY KEY  (`UserID`,`RoleID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 --
 -- Dumping data for table `PREFIX_rbac_userroles`
@@ -151,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_session` (
   PRIMARY KEY (`ID`),
   UNIQUE KEY `SessionID` (`SessionID`),
   KEY `UserID` (`UserID`)
-) ENGINE=MEMORY  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=2 ;
+) ENGINE=MEMORY  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -167,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_users` (
   `Protocol` float collate utf8_bin NOT NULL,
   PRIMARY KEY  (`ID`),
   UNIQUE KEY `Username` (`Username`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `PREFIX_users`

@@ -54,7 +54,8 @@ class ExtendedUserManager extends UserManager
 	{
 		if (!jf::$User->UserIDExists($UserID)) return null;
 		if ($this->UserIDExists($UserID)) return false;
-		$IID=jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp) VALUES (?,?,?)",$UserID,$Email,jf::time());
+		$IID=jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp,PasswordChangeTimestamp) VALUES (?,?,?,?)"
+				,$UserID,$Email,jf::time(),jf::time()+self::$PasswordLifeTime);
 		return $IID>0;
 	}
 	/**
@@ -62,7 +63,7 @@ class ExtendedUserManager extends UserManager
 	 * if user is only normal, it will return notfound error
 	 * @param $Username
 	 * @param $Password
-	 * @return boolean
+	 * @return boolean true on success, false on failure
 	 */
 	function Login($Username,$Password)
 	{
@@ -75,6 +76,8 @@ class ExtendedUserManager extends UserManager
 		
 		$UserID=$this->UserID($Username);
 		$Info=$this->UserInfo($UserID);
+		if ($Info['CreateTimestamp']==0)
+			$Info=$this->InitUser($UserID);
 		if ($Info['Activated']==0) #check activation
 		{
 			$this->LastError=ExtendedUserErrors::Inactive;
@@ -135,7 +138,7 @@ class ExtendedUserManager extends UserManager
 		$res=jf::$User->ForceLogin($UserID);
 		if ($res)
 		{
-			jf::SQL("UPDATE {$this->TablePrefix()}xuser SET FailedLoginAttempts=0 , LockTimeout=? , LastLoginTimestamp=? , TemporaryResetPasswordTimeout=? WHERE ID=? LIMIT 1",jf::time(),jf::time(),jf::time(),$UserID);
+			$this->Reset($UserID);
 			return true;
 		}
 		else
@@ -208,6 +211,8 @@ class ExtendedUserManager extends UserManager
 		$res=jf::$User->EditUser($OldUsername, $NewUsername,$NewPassword);
 		if ($Email!==null)
 			jf::SQL("UPDATE {$this->TablePrefix()}xuser SET Email=? WHERE ID=?",$Email,$UserID);
+		if ($NewPassword) #update password lifetime
+			jf::SQL("UPDATE {$this->TablePrefix()}xuser SET PasswordChangeTimestamp=? WHERE ID=?",jf::time()+self::$PasswordLifeTime,$UserID);
 		return $res;
 	}	/**
 	 * Creates an extended user and returns the user id
@@ -219,7 +224,8 @@ class ExtendedUserManager extends UserManager
 	 */
 	function CreateUser($Username,$Password)
 	{
-		$Email=func_get_args()[2];
+		$Email=func_get_args();
+		$Email=$Email[2];
 		if ($Email===null)
 			throw new \Exception("You have to provide valid email address.");
 		$IID=jf::$User->CreateUser($Username,$Password);
@@ -327,6 +333,29 @@ class ExtendedUserManager extends UserManager
 		else
 			return null;
 		
+	}
+	
+	/**
+	 * Lock time in seconds
+	 * @param string $Username
+	 * @return integer|NULL lock time
+	 */
+	function LockTime($Username)
+	{
+		$UserID=$this->UserID($Username);
+		if (!$UserID) return null;
+		$Info=$this->UserInfo($UserID);
+		return $Info['LockTimeout']-jf::time();
+	}
+	/**
+	 * Initiate an extended user by setting initial times
+	 * @param integer $UserID
+	 * @return array user info
+	 */
+	function InitUser($UserID)
+	{
+		jf::SQL("UPDATE {$this->TablePrefix()}xuser SET CreateTimestamp=?,PasswordChangeTimestamp=?",jf::time(),jf::time()+self::$PasswordLifeTime);
+		return $this->UserInfo($UserID);
 	}
 }
 

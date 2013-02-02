@@ -99,11 +99,11 @@ class jf
      */
     public static $Profiler;
     /**
-     * Options Interface. This object allows you to save options for current session, current user and even current application
+     * Settings. This object allows you to save options for current session, current user and even current application
      * and retrieve them when needed.
      * @var SettingManager
      */
-    public static $Options;
+    public static $Settings;
     /**
      * Log Management. Logs system events, Analyses logs and etc.
      * @var LogManager
@@ -171,8 +171,6 @@ class jf
     #### Options Section ####
     static function SaveGeneralSetting($Name, $Value, $Timeout = null)
 	{
-		if ($Timeout===null)
-			$Timeout=reg("jf/session/timeout/General");
 		$a=func_get_args();
         return call_user_func_array(array(jf::$Settings,"SaveGeneral"),$a);	    
 	}

@@ -18,7 +18,6 @@ class SecurityManager extends Model
 	public function AccessControl(Controller $ControllerObject)
 	{
 		$modulename=$this->ModuleName($ControllerObject);
-		
 		$Parts=explode("/",$modulename);
 		$n = 0;
 		while ( $Parts  )
@@ -32,6 +31,12 @@ class SecurityManager extends Model
 		}
 		return false;
 		
+	}
+	
+	
+	function RandomToken($Length=64)
+	{
+		return substr(hash("sha512",mt_rand()),0,$Length);
 	}
 }
 ?>

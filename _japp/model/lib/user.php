@@ -302,8 +302,10 @@ class UserManager extends Model
 	 * @param Integer $UserID
 	 * @return String
 	 */
-	function Username($UserID)
+	function Username($UserID=null)
 	{
+		if ($UserID===null)
+			$UserID=jf::CurrentUser();
 		$Result = jf::SQL ( "SELECT Username FROM {$this->TablePrefix()}users WHERE ID=?", $UserID );
 		if ($Result)
 			return $Result [0] ['Username'];
