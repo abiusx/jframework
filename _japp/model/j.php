@@ -143,16 +143,19 @@ class jf
 	static function time()
 	{
 		if (self::$time===null)
-			self::$time=time();
+			return time();
 		return self::$time;
 	}
 	/**
 	 * Use this to move time from real time for testing purposes
-	 * @param integer $difference
+	 * @param integer $difference optional, do not provide to reset
 	 */
-	static function _movetime($difference)
+	static function _movetime($difference=null)
 	{
-		self::$time=time()+$difference;
+		if ($difference==null)
+			self::$time=null;
+		else
+			self::$time=time()+$difference;
 	}
 	private static $time=null;
 

@@ -2,10 +2,10 @@
 namespace jf;
 class ExtendedUserErrors
 {
-	const Inactive=0;
-	const NotFound=1;
-	const Locked=2;
-	const InvalidCredentials=3;
+	const Inactive=1;
+	const NotFound=2;
+	const Locked=3;
+	const InvalidCredentials=4;
 }
 /**
  * This is an extended user manager with support for activation, locking, reset password and etc.
@@ -16,13 +16,14 @@ class ExtendedUserManager extends UserManager
 {
 	public static $LockCount=10;
 	public static $LockTime=3600;
+	public static $TemporaryPasswordTime=3600;
 	
 	
 	/**
 	 * 
 	 * @var ExtendedUserErrors
 	 */
-	public $LastError;
+	public $LastError=null;
 	/**
 	 * Return the last error converted to string
 	 * use the variable form if you need the constant.
@@ -31,7 +32,11 @@ class ExtendedUserManager extends UserManager
 	 */
 	function LastError()
 	{
-		$res= ($this->LastError)."";
+		if ($this->LastError===null)
+			return null;
+        $constantsClass = new \ReflectionClass ( '\jf\ExtendedUserErrors' );
+        $consts=$constantsClass->getConstants();
+        $res=array_search($this->LastError,$consts);
 		$this->LastError=null;
 		return $res;
 	}
@@ -58,6 +63,7 @@ class ExtendedUserManager extends UserManager
 	 */
 	function Login($Username,$Password)
 	{
+		$this->LastError=null;
 		if (!$this->UserExists($Username)) 
 		{
 			$this->LastError=ExtendedUserErrors::NotFound;
@@ -71,7 +77,7 @@ class ExtendedUserManager extends UserManager
 			$this->LastError=ExtendedUserErrors::Inactive;
 			return false;
 		}
-		if ($Info['LockTimeout']>time())
+		if ($Info['LockTimeout']>jf::time())
 		{
 			$this->LastError=ExtendedUserErrors::Locked;
 // 			$Error='Account Locked for '.date("H:i:s",$Info['LockTimeout']-time());
@@ -93,11 +99,20 @@ class ExtendedUserManager extends UserManager
 		}
 		else
 		{
-			jf::SQL("UPDATE {$this->TablePrefix()}xuser SET FailedLoginAttempts=0 , LockTimeout=? , LastLoginTimestamp=? , TemporaryResetPasswordTimeout=? WHERE ID=? LIMIT 1",jf::time(),jf::time(),jf::time(),$UserID);
+			$this->Reset($UserID);
 			return true;
 		}
 	}
-	
+
+	/**
+	 * Reset a user by setting its timeouts, failed attempts and last login
+	 * @param integer $UserID
+	 */
+	protected function Reset($UserID)
+	{
+		jf::SQL("UPDATE {$this->TablePrefix()}xuser SET FailedLoginAttempts=0 , LockTimeout=? , LastLoginTimestamp=? , TemporaryResetPasswordTimeout=? WHERE ID=? LIMIT 1",jf::time(),jf::time(),jf::time(),$UserID);
+		
+	}
 	/**
 	 * Logs in a user without providing password
 	 * @param integer $UserID
@@ -126,10 +141,11 @@ class ExtendedUserManager extends UserManager
 	/**
 	 * Unlocks an extended user
 	 * @param $UserID
+	 * @return boolean
 	 */
 	function Unlock($UserID)
 	{
-		jf::SQL("UPDATE {$this->TablePrefix()}xuser SET LockTimeout=? , FailedLoginAttempts=0 WHERE ID=? LIMIT 1",jf::time(),$UserID);
+		return jf::SQL("UPDATE {$this->TablePrefix()}xuser SET LockTimeout=? , FailedLoginAttempts=0 WHERE ID=? LIMIT 1",jf::time()-1,$UserID)>=1;
 	}
 	/**
 	 * Increases user failed login attempts
@@ -152,6 +168,36 @@ class ExtendedUserManager extends UserManager
 	}
 	
 	/**
+	 * Whether an extended user is activated or not
+	 * @param integer $UserID
+	 * @return boolean
+	 */
+	function IsActive($UserID)
+	{
+		$res=jf::SQL("SELECT Activated FROM {$this->TablePrefix()}xuser WHERE ID=?",$UserID);
+		if ($res)
+			return $res[0]['Activated']==1;
+		else
+			return false;	
+	}
+	/**
+    Edits an extended user
+    @param String $OldUsername 
+    @param String $NewUsername 
+    @param String $NewPassword leave null to not change
+    @param String $NewEmail leave null to not change
+    @return null on old user doesn't exist, false on new user already exists,  true on success.
+	 */
+	function EditUser($OldUsername, $NewUsername, $NewPassword = null,$Email=null)
+	{
+		if (! $this->UserExists ( $OldUsername )) return null;
+		if ($OldUsername != $NewUsername and $this->UserExists ( $NewUsername )) return false;
+		$UserID=$this->UserID($OldUsername);
+		$res=jf::$User->EditUser($OldUsername, $NewUsername,$NewPassword);
+		if ($Email!==null)
+			jf::SQL("UPDATE {$this->TablePrefix()}xuser SET Email=? WHERE ID=?",$Email,$UserID);
+		return $res;
+	}	/**
 	 * Creates an extended user and returns the user id
 	 * @param $Username
 	 * @param $Password
@@ -163,7 +209,7 @@ class ExtendedUserManager extends UserManager
 	{
 		$Email=func_get_args()[2];
 		if ($Email===null)
-			throw new Exception("You have to provide valid email address.");
+			throw new \Exception("You have to provide valid email address.");
 		$IID=jf::$User->CreateUser($Username,$Password);
 		if ($IID===null) return null;
 		jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp) VALUES (?,?,?)",$IID,$Email,jf::time());
@@ -250,5 +296,11 @@ class ExtendedUserManager extends UserManager
 		return $res==1;
 	}
 	
+	
+	function ResetPassword($UserID)
+	{
+		if (!$this->UserIDExists($UserID)) return false;
+		
+	}
 }
 

@@ -252,7 +252,7 @@ class UserManager extends Model
 		if (!$Result) return false;
 		$UserID=$this->UserID($Username);
 		$res=$this->ForceLogin($UserID);
-		jf::$Session->SetCurrentUser($UserID);
+		if ($res) jf::$Session->SetCurrentUser($UserID);
 		return $res;
 	}
 

@@ -144,8 +144,6 @@ abstract class BaseDatabase
 	 */
 	function Initialize($DatabaseName)
 	{
-// 		$CreateDBSQL="CREATE DATABASE `{$DatabaseName}`;
-// 					USE `{$DatabaseName}`;";
 
 		$this->DropAllTables($DatabaseName);		
 
@@ -154,26 +152,99 @@ abstract class BaseDatabase
 		foreach ($Queries as $Q)
 			$this->query($Q);
 	}
-		
-	protected function DropAllTables($DatabaseName)
+	/**
+	 * this function sets up database from install files, but only
+	 * empties tables and inserts initial data into them.
+	 * This is much faster than Initialize for testing fixture.
+	 * @param string $DatabaseName
+	 */
+	function InitializeData($DatabaseName)
 	{
-		$DropTablesQuery=$this->SQL("SELECT table_name
+		$this->TruncateAllTables($DatabaseName);
+		
+		$Query=$this->GetDataSQL();
+		$Queries=explode(";",$Query);
+		foreach ($Queries as $Q)
+			$this->query($Q);
+	}
+		
+	/**
+	 * Returns list of tables in a database
+	 * @param string $DatabaseName
+	 * @return array|null
+	 */
+	protected function ListTables($DatabaseName)
+	{
+		$TablesQuery=$this->SQL("SELECT table_name
 				FROM information_schema.tables
 				WHERE TABLE_SCHEMA = '{$DatabaseName}'");
-				foreach ($DropTablesQuery as $tableName)
-				$this->SQL("DROP TABLE ".$tableName['table_name']);
+		$out=array();
+		foreach ($TablesQuery as $t)
+			$out[]=$t['table_name'];
+		return $out;
 	}
-	
-	protected function GetInitializationSQL()
+	/**
+	 * Drops all tables of a database
+	 * @param string $DatabaseName
+	 */
+	protected function DropAllTables($DatabaseName)
+	{
+		$tables=$this->ListTables($DatabaseName);
+		if (is_array($tables))
+		foreach ($tables as $tableName)
+			$this->SQL("DROP TABLE ".$tableName);
+	}
+
+	/**
+	 * Truncates all data from all tables
+	 * @param string $DatabaseName
+	 */
+	protected function TruncateAllTables($DatabaseName)
+	{
+		$tables=$this->ListTables($DatabaseName);
+		if (is_array($tables))
+		foreach ($tables as $tableName)
+			$this->SQL("TRUNCATE ".$tableName);
+	}
+	/**
+	 * Gets sql from a setup sql file
+	 * @param string $Type
+	 * @throws Exception
+	 */
+	private function GetSQL($Type)
 	{
 		$Adapter=substr(get_class($this),strlen("jf\\DB_"));
-		$SetupFile=realpath(__DIR__."/../../../../".self::$DatabaseSetupFolder."{$Adapter}.sql");
+		$SetupFile=realpath(__DIR__."/../../../../".self::$DatabaseSetupFolder."{$Adapter}.{$Type}.sql");
 		if (file_exists($SetupFile))
 		{
 			return  str_replace("PREFIX_",DatabaseManager::$TablePrefix,file_get_contents($SetupFile));
 		}
 		else
-			throw new Exception("No database setup file available for '{$Adapter}'.");
+			throw new \Exception("No database setup file available for '{$Adapter}'.");
+	}
+	/**
+	 * Returns the SQL for schema generation
+	 * @return string
+	 */
+	protected function GetSchemaSQL()
+	{
+		return $this->GetSQL("schema");	
+	}
+	/**
+	 * Returns the SQL for initial data
+	 * @return string
+	 */
+	protected function GetDataSQL()
+	{
+		return $this->GetSQL("data");	
+	}
+	/**
+	 * Returns SQL for setup, which is a mixture of Schema and Data SQLs
+	 * @return string
+	 */
+	protected function GetInitializationSQL()
+	{
+		return $this->GetSchemaSQL().$this->GetDataSQL();
 	}
 	
 	protected static $DatabaseSetupFolder="install/_db/";

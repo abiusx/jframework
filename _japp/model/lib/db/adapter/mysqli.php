@@ -89,12 +89,25 @@ class DB_mysqli extends BaseDatabase
 		return new DB_Statement_mysqli ( $this ,$Query);
 	}
 	
-// 	function Initialize($DatabaseName)
-// 	{
-// 		$this->DropAllTables($DatabaseName);
-// 		$r=$this->Connection->multi_query($this->GetInitializationSQL());
-// 		//FIXME: Commands out of sync because we did not consume the results. even if we do it happens. not on single queries.
-// 	}
+	function Initialize($DatabaseName)
+	{
+		#this is a bit faster than the base one, like 5%
+		$this->DropAllTables($DatabaseName);
+		$r=$this->Connection->multi_query($this->GetInitializationSQL());
+		while ($this->Connection->more_results())
+		{
+			$this->Connection->next_result();
+// 			$r=$this->Connection->store_result();
+// 			if ($r) $r->free();
+		}
+	}
+	function InitializeData($DatabaseName)
+	{
+		$this->TruncateAllTables($DatabaseName);
+		$r=$this->Connection->multi_query($this->GetDataSQL());
+		while ($this->Connection->more_results())
+			$this->Connection->next_result();
+	}
 }
 
 
