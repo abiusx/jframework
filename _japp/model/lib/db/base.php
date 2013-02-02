@@ -124,7 +124,12 @@ abstract class BaseDatabase
 		$statement->execute();
 		$type = substr ( trim ( strtoupper ( $Query ) ), 0, 6 );
 		if ($type == "INSERT")
-			return $this->LastID ();
+		{
+			$res=$this->LastID (); //returns 0 if no auto-increment found
+			if ($res==0)
+				$res=$statement->rowCount();
+			return $res;
+		}
 		elseif ($type == "DELETE" or $type == "UPDATE" or $type == "REPLAC")
 			return $statement->rowCount ();
 		elseif ($type == "SELECT")
