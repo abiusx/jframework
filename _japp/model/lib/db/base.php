@@ -184,6 +184,7 @@ abstract class BaseDatabase
 				FROM information_schema.tables
 				WHERE TABLE_SCHEMA = '{$DatabaseName}'");
 		$out=array();
+		if (is_array($TablesQuery))
 		foreach ($TablesQuery as $t)
 			$out[]=$t['table_name'];
 		return $out;
