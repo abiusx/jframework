@@ -64,6 +64,8 @@ abstract class DbTest extends \PHPUnit_Framework_TestCase
 	function setUp()
 	{
 		jf::db()->Initialize($this->dbConfig()->DatabaseName);
+		jf::$Session->Refresh();
+		
 	}
 	
 	private static $initiated=false;
