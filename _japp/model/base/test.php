@@ -18,7 +18,15 @@ abstract class Test extends \PHPUnit_Framework_TestCase
 			TestLauncher::$TestSuite->addTestFile($file);
 		}
 	}
-	
+
+	/**
+	 * Moves time to test timing features
+	 * @param integer $difference
+	 */
+	function movetime($difference)
+	{
+		jf::_movetime($difference);
+	}
 }
 
 abstract class TestSuite extends \PHPUnit_Framework_TestCase
@@ -44,7 +52,7 @@ abstract class TestSuite extends \PHPUnit_Framework_TestCase
 	
 }
 
-abstract class DbTest extends \PHPUnit_Framework_TestCase
+abstract class DbTest extends Test
 {
 	private static $config=null;
 	/**

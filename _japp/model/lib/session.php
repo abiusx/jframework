@@ -1,16 +1,10 @@
 <?php
 namespace jf;
-/*
- * jframework Session Manager
- * @author abiusx
- * @version 2
-	Guest users have their UserID set to null;
-
- */
-#FIXME: use updating and etc. using SessionID since a user can be logged in multiple times
-# also add option to only allow one login of the user
 /**
-This class Handles user session and user management (credentials).
+ * jframework session manager
+ * This class Handles user session and user management (credentials).
+ * @author abiusx
+ * @version 4.0
  */
 class SessionManager extends Model
 {
@@ -19,31 +13,33 @@ class SessionManager extends Model
 
 	function __construct()
 	{
-		$this->IP = (getenv ( "HTTP_X_FORWARDED_FOR" )) ? getenv ( "HTTP_X_FORWARDED_FOR" ) : getenv ( "REMOTE_ADDR" );
-		
 		session_name ( self::$SessionName );
 		if (!session_start ())
 			throw new Exception("Unable to session_start().");
 		$this->Refresh();
 
+	}
+	/**
+	 * Would close the session information. Used for comet and similar paraller requests
+	 */
+	function Finish()
+	{
 		session_write_close (); //This would release the session_start lock and prevent request sequentialization
 	}
-	public $IP;
 	/**
 	If a user is logged in, This variable holds his UserID, else it would be null.
 	 */
-	private $UserID;
+	protected $UserID=null;
 
 	/**
-	Checks the session and sets the sessiontate variable accordingly
-    @return 
-		true on New Session,
-		false on Existing Session
+	 * Refresh the session. If it exists, update its timing, otherwise create it. Also removes expired sessions.
+	 * @return boolean true on new session, false on existing
 	 */
 	function Refresh()
 	{
-		$SessionID = session_id ();
+		$SessionID = $this->SessionID();
 		$Result = jf::SQL ( "SELECT * FROM {$this->TablePrefix()}session WHERE SessionID=?", $SessionID );
+		
 		if (! $Result)
 		{
 			$this->CreateSession();
@@ -52,22 +48,24 @@ class SessionManager extends Model
 		if (count ( $Result ) == 1)
 		{
 			$Result = $Result [0];
-			$this->UserID = $Result ['UserID'];
-			if ($this->UserID == 0) $this->UserID = null;
+			$this->SetCurrentUser($Result['ID']);
 			$LoginDate = $Result ['LoginDate'];
 			$LastAccess = $Result ['LastAccess'];
 			$LoginTimestamp = $LoginDate; //strtotime($LoginDate);
 			$LastAccessTimestamp = $LastAccess; //strtotime($LastAccess);
-			$NowTimestamp = time ();
+			$NowTimestamp = jf::time ();
 			$Dis = $NowTimestamp - $LastAccessTimestamp;
 			$LoginTime = $NowTimestamp - $LoginTimestamp;
 			if ($Dis > self::$NoAccessTimeout or $LoginTime > self::$ForcedTimeout)
 			{
 				$this->ExpireSession();
 			}
-			jf::SQL ( "UPDATE {$this->TablePrefix()}session SET LastAccess=? ,AccessCount=AccessCount+1 , CurrentRequest=? WHERE SessionID=?", time (), jf::$Request,session_id () );
-			return 1;
+			else
+				jf::SQL ( "UPDATE {$this->TablePrefix()}session SET LastAccess=? ,AccessCount=AccessCount+1 , CurrentRequest=? WHERE SessionID=?", jf::time (), jf::$Request,session_id () );
+			return false;
 		}
+		else 
+			throw new \Exception("More than one session record found in database!");
 		$this->_Sweep ();
 	}
 
@@ -75,24 +73,34 @@ class SessionManager extends Model
 	public static $NoAccessTimeout=1800;
 	public static $ForcedTimeout=604800; //a day
 	/**
+	 * Sets the current user whose session is active.
+	 * The current user is referenced by functions requiring an active user
+	 * @param integer $UserID
+	 */
+	function SetCurrentUser($UserID)
+	{
+		$this->UserID = $UserID;
+		if ($this->UserID == 0) $this->UserID = null;
+	}
+	/**
 	Removes outdated session info from session table
 	 */
-	private function _Sweep()
+	function _Sweep($force=false)
 	{
 		//Removes timed out session
-		if (rand ( 0, 1000 ) / 1000.0 > self::$SweepRatio) return; //10%
-		$Now = time ();
+		if (!$force) if (rand ( 0, 1000 ) / 1000.0 > self::$SweepRatio) return; //10%
+		$Now = jf::time ();
 		jf::SQL ( "DELETE FROM {$this->TablePrefix()}session WHERE LastAccess<? OR LoginDate<?", $Now- self::$NoAccessTimeout, $Now- self::$ForcedTimeout);
 	}
 
 
 
 	/**
-    Creates a new session (registers) for current visitor.
+    Creates a new session for current visitor.
 	 */
 	function CreateSession()
 	{
-		jf::SQL ( "INSERT INTO {$this->TablePrefix()}session (UserID,SessionID,LoginDate,LastAccess,IP) VALUES (?,?,?,?,?)", 0, session_id (), time (), time (), $this->IP );
+		return jf::SQL ( "INSERT INTO {$this->TablePrefix()}session (UserID,SessionID,LoginDate,LastAccess,IP) VALUES (?,?,?,?,?)", 0, $this->SessionID (), jf::time (), jf::time (), HttpRequest::IP() );
 	}
 
 	/**
@@ -116,29 +124,32 @@ class SessionManager extends Model
 		$oldSession=$this->SessionID();
 		session_regenerate_id();
 		$newSession=$this->SessionID();
-		
 		$r=jf::SQL("UPDATE {$this->TablePrefix()}session SET SessionID=? WHERE SessionID=?",$newSession,$oldSession);
 		if ($r>=1) return true;
 		else return false;
 	}
 	/**
-	 * Destroys current session
+	 * Destroys current session, removing all session variables and parameters
 	 */
 	function DestroySession()
 	{
 		jf::SQL("DELETE FROM {$this->TablePrefix()}session WHERE SessionID=?",$this->SessionID());			
 		if (isset ( $_COOKIE [session_name ()] ))
 		{
-			setcookie ( session_name (), '', time () - 42000, '/' );
+			setcookie ( session_name (), '', jf::time () - 42000, '/' );
 		}
-		$this->UserID = null;
+		$this->SetCurrentUser(null);
+		$_SESSION=array();
 		session_regenerate_id ( true );
 	}
-
-	function SessionID($set=null)
+	/**
+	 * Accessor for session_id in case non-native method required
+	 * @param string $set optional new session ID to set
+	 */
+	function SessionID($NewID=null)
 	{
-		if ($set)
-			session_id($set);
+		if ($NewID)
+			session_id($NewID);
 		return session_id();
 	}
 	/**
@@ -156,7 +167,7 @@ class SessionManager extends Model
 	 * returns current UserID, null on not user logged in
 	 * @return Integer or null
 	 */
-	function UserID()
+	function CurrentUser()
 	{
 		return $this->UserID;
 	}

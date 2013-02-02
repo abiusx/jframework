@@ -24,7 +24,7 @@ class LoginController extends BaseControllerClass
         {
         	if ($_POST["Remember"])
             {
-                setcookie("jFramework_Login_Remember", $_POST["Username"] . "\n" . $_POST["Password"], time()+60*60*24*7, "/", null, null);
+                setcookie("jFramework_Login_Remember", $_POST["Username"] . "\n" . $_POST["Password"], jf::time()+60*60*24*7, "/", null, null);
             }
             else
             {

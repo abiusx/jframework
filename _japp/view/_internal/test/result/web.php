@@ -89,5 +89,4 @@ function DumpResultRows($ResultArray,$BackgroundColor,$Color,$Text,$Odd=false)
 </table>
 
 <?php 
-
 ?>

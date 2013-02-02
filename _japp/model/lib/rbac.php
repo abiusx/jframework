@@ -351,7 +351,7 @@ class RBACManager extends Model
         j::SQL("{$Query} {$this->TablePrefix}rbac_userroles 
         (UserID,RoleID,AssignmentDate)
         VALUES (?,?,?)
-        ",$UserID,$Role,time());
+        ",$UserID,$Role,jf::time());
 	}
 	/**
 	 * Unassigns a role to a user
@@ -428,7 +428,7 @@ class RBACManager extends Model
 	    
 	    j::SQL("{$Query} {$this->TablePrefix}rbac_rolepermissions 
 	    (RoleID,PermissionID,AssignmentDate)
-	    VALUES (?,?,?)",$Role,$Permission,time());
+	    VALUES (?,?,?)",$Role,$Permission,jf::time());
 	}
 	/**
 	 * Unassigns a role-permission relation

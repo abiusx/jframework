@@ -13,6 +13,11 @@ class Password
 {
 
 	protected $DynamicSalt=null;
+	/**
+	 * Static salt concatenated to dynamic salt
+	 * @var string
+	 * @version 1.0
+	 */
 	protected static $StaticSalt="7d2cdb76dcc3c97fc55bff3dafb35724031f3e4c47512d4903b6d1fb914774405e74539ea70a49fbc4b52ededb1f5dfb7eebef3bcc89e9578e449ed93cfb2103";
 	/**
 	 * change this everytime you change the way password is generated to update
@@ -114,6 +119,9 @@ class Password
 	{
 		return $this->Username;
 	}
+	/**
+	 * Returns the hashed password
+	 */
 	function Password()
 	{
 		return $this->Password;
@@ -140,9 +148,9 @@ class UserManager extends Model
     Removes a user form system users if exists
     @param Username of the user
 	 */
-	function RemoveUser($Username)
+	function DeleteUser($Username)
 	{
-		j::SQL ( "DELETE FROM {$this->TablePrefix}users WHERE LOWER(Username)=LOWER(?)", $Username );
+		j::SQL ( "DELETE FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username );
 	}
 	/**
 	 * Tells whether or not a user is logged in
@@ -151,7 +159,7 @@ class UserManager extends Model
 	 */
 	function IsLoggedIn($UserID)
 	{
-		$Result=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix}session WHERE UserID=?",$UserID);
+		$Result=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}session WHERE UserID=?",$UserID);
 		if ($Result[0]['Result']>=1) return true;
 		else return false;
 	}
@@ -164,13 +172,13 @@ class UserManager extends Model
 	function Logout($UserID=null)
 	{
 		if ($UserID===null)
-			if (j::UserID()===null)
+			if (jf::CurrentUser()===null)
 				return false;
 			else
-				$UserID=j::UserID();
-		j::SQL ( "UPDATE {$this->TablePrefix}session SET UserID=0 WHERE UserID=? ", $UserID );
+				$UserID=jf::CurrentUser();
+		j::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=0 WHERE UserID=? ", $UserID );
 		j::$Session->RollSession();
-		j::$Session->Refresh();
+		$res=j::$Session->Refresh();
 	}
 	
 	
@@ -188,8 +196,9 @@ class UserManager extends Model
 		if ($OldUsername != $NewUsername and $this->UserExists ( $NewUsername )) return false;
 		if ($NewPassword)
 		{
-			$Salt=$this->GenerateSalt();
-			j::SQL ( "UPDATE {$this->TablePrefix()}users SET Username=?, Password=?, Salt=? WHERE LOWER(Username)=LOWER(?)", $NewUsername, $this->SafeHashedPassword ( $NewUsername, $NewPassword, $Salt ),$Salt , $OldUsername);
+			$HashedPass=new Password($NewUsername, $NewPassword);
+			j::SQL ( "UPDATE {$this->TablePrefix()}users SET Username=?, Password=?, Salt=?, Protocol=? WHERE LOWER(Username)=LOWER(?)",
+				 $NewUsername, $HashedPass->Password(),$HashedPass->Salt(),$HashedPass->Protocol(), $OldUsername);
 		}
 		else
 		{
@@ -201,36 +210,32 @@ class UserManager extends Model
 	Validates a user credentials
     @param Username of the user
     @param Password of the user
-    @return integer UserID
-		null on Invalid Credentials
+    @return boolean
 	 */
 	function ValidateUserCredentials($Username, $Password)
 	{
-		$Res=j::SQL("SELECT * FROM {$this->TablePrefix()}users WHERE LOWER(username)=?",$Username);
-		if ($Res)
-			$Salt=$Res[0]['Salt'];
-		else
-			return null;
-		$Res = j::SQL ( "SELECT * FROM {$this->TablePrefix}users WHERE LOWER(Username)=LOWER(?) AND Password=?", $Username, $this->SafeHashedPassword ( $Username, $Password ,$Salt) );
-		if ($Res)
-			return $Res [0]['ID'];
-		else
-			return null;
+		$Record=jf::SQL("SELECT * FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)",$Username);
+		if (!$Record) return false;
+		$Record=$Record[0];
+		return Password::Validate($Username, $Password, $Record['Password'], $Record['Salt'],$Record['Protocol']);
+		
 	}
 
+	/**
+	 * Logs a user in only by user ID without needing valid credentials. Intended for system use only.
+	 * @param integer $UserID
+	 * @return boolean false if user not found
+	 */
 	function ForceLogin($UserID)
 	{
 		if (! $this->IsLoggedIn($UserID))
 		{
-			$IID=j::SQL( "INSERT INTO {$this->TablePrefix}session (UserID,SessionID,LoginDate,LastAccess,IP ) VALUES (?,?,?,?,?)", $Result ['ID'], session_id (), time (), time (), $this->IP);
-			if ($IID)
-				return true;
-			else
-				return false;
+			$r=jf::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID, jf::$Session->SessionID(), jf::time (), jf::time (), 1, jf::$Session->SessionID());
+			return $r>0;
 		}
 		else
 		{
-			$r=j::SQL ( "UPDATE {$this->TablePrefix}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE UserID=?", $Result ['ID'], session_id (), time (), time (), 1, $Result[0] );
+			$r=jf::SQL( "UPDATE {$this->TablePrefix()}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE UserID=?", $UserID, jf::$Session->SessionID(), jf::time (), jf::time (), 1, $UserID);
 			return $r>0;
 		}
 	}
@@ -245,24 +250,39 @@ class UserManager extends Model
 	{
 		$Result = $this->ValidateUserCredentials ( $Username, $Password );
 		if (!$Result) return false;
-		return $this->ForceLogin($Result);
+		$UserID=$this->UserID($Username);
+		$res=$this->ForceLogin($UserID);
+		jf::$Session->SetCurrentUser($UserID);
+		return $res;
 	}
 
 	/**
 	Checks to see whether a user exists or not
     @param Username of the new user
-    @return null on user not exists, 2D array on else
+    @return boolean
 	 */
 	function UserExists($Username)
 	{
-		return j::SQL ( "SELECT * FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username );
+		$res=jf::SQL ( "SELECT * FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username );
+		return ($res!==null);
 	}
 
+
+	/**
+	 * Checks wether a user ID is valid or not
+	 * @param integer $UserID
+	 * @return boolean
+	 */
+	function UserIDExists($UserID)
+	{
+		$res=jf::SQL ( "SELECT * FROM {$this->TablePrefix()}users WHERE ID=?", $UserID);
+		return ($res!==null);
+	}	
 	/**
     Creates a new user in the system
     @param Username of the new user
     @param Password of the new user
-    @return UserID on success
+    @return integer UserID on success
 		null on User Already Exists
 	 */
 	function CreateUser($Username, $Password)
@@ -279,18 +299,31 @@ class UserManager extends Model
 	/**
 	 * returns Username of a user
 	 *
-	 * @param Integer $UserID leave null for logged in user
+	 * @param Integer $UserID
 	 * @return String
 	 */
-	function Username($UserID = null)
+	function Username($UserID)
 	{
-		if (! $UserID) $UserID = $this->UserID;
-		if (! $UserID) return null;
-		$Result = j::SQL ( "SELECT Username FROM {$this->TablePrefix}users WHERE ID=?", $UserID );
+		$Result = jf::SQL ( "SELECT Username FROM {$this->TablePrefix()}users WHERE ID=?", $UserID );
 		if ($Result)
 			return $Result [0] ['Username'];
 		else
 			return null;
+	}
+	
+	/**
+	 * 
+	 * @param string $Username
+	 * @return integer UserID null on not exists
+	 */
+	function UserID($Username)
+	{
+		$res=jf::SQL("SELECT ID FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)",$Username);
+		if ($res)
+			return $res[0]['ID'];
+		else
+			return null;
+		
 	}
 	
 	

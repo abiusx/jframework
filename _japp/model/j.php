@@ -58,18 +58,6 @@ class jf
 		require_once($file);
 			
 	}
-	static function dep_try_import($module,$scopeVars=null)
-	{
-		try 
-		{
-			jf::import($module,$scopeVars);
-		}
-		catch (Exception $e)
-		{
-			return false;
-		}
-		return true;
-	}
 	/**
 	 * Returns a database connection which is already established
 	 * If no index provided, first (default) connection will be returned
@@ -142,8 +130,26 @@ class jf
      * @var RunModes
      */
     public static $RunMode;
-	
-	
+	/**
+	 * convenient wrapper for php time() function which allows
+	 * time manipulation for testing purposes
+	 * always use this instead of the php one
+	 */
+	static function time()
+	{
+		if (self::$time===null)
+			self::$time=time();
+		return self::$time;
+	}
+	/**
+	 * Use this to move time from real time for testing purposes
+	 * @param integer $difference
+	 */
+	static function _movetime($difference)
+	{
+		self::$time=time()+$difference;
+	}
+	private static $time=null;
 
 
 
@@ -153,15 +159,6 @@ class jf
 	 */
 	public static $i18n;
     
-    ##### RBAC Section #####
-    static function EnforcePermission($Permission)
-    {
-        
-    }
-    static function CheckPermission($Permission)
-    {
-        
-    }
     
     #### Options Section ####
     static function SaveGeneralSetting($Name, $Value, $Timeout = null)
@@ -169,59 +166,59 @@ class jf
 		if ($Timeout===null)
 			$Timeout=reg("jf/session/timeout/General");
 		$a=func_get_args();
-        return call_user_func_array(array(j::$Settings,"SaveGeneral"),$a);	    
+        return call_user_func_array(array(jf::$Settings,"SaveGeneral"),$a);	    
 	}
 	static function LoadGeneralSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Settings,"LoadGeneral"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"LoadGeneral"),$a);	    
 	}
 	static function SaveUserSetting($Name, $Value,$UserID=null,$Timeout = null)
 	{
 		if ($Timeout===null)
 			$Timeout=jfSessionManager::$NoAccessTimeout;
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Settings,"Save"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"Save"),$a);	    
 	}
 	static function DeleteGeneralSetting($Name,$UserID=null)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Options,"DeleteGeneral"),$a);	    
+		return call_user_func_array(array(jf::$Options,"DeleteGeneral"),$a);	    
 	}
 	
     static function LoadUserSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Options,"Load"),$a);	    
+		return call_user_func_array(array(jf::$Options,"Load"),$a);	    
 	}
 	static function SaveSessionSetting($Name,$Value,$Timeout = null)
 	{
 		if ($Timeout===null)
 			$Timeout=reg("jf/session/timeout/General");
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Options,"SaveSession"),$a);	    
+		return call_user_func_array(array(jf::$Options,"SaveSession"),$a);	    
 	}
 	static function DeleteUserSetting($Name,$ID=null)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Options,"Delete"),$a);	    
+		return call_user_func_array(array(jf::$Options,"Delete"),$a);	    
 	}
 	
 	static function LoadSessionSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Options,"LoadSession"),$a);	    
+		return call_user_func_array(array(jf::$Options,"LoadSession"),$a);	    
 	}
 	static function DeleteSessionSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(j::$Options,"DeleteSession"),$a);	    
+		return call_user_func_array(array(jf::$Options,"DeleteSession"),$a);	    
 	}
     
     ###### Log Section ######
     static function Log ($Subject, $LogData, $Severity = 0)
     {
-        return j::$Log->Log($Subject, $LogData, $Severity);
+        return jf::$Log->Log($Subject, $LogData, $Severity);
     }
     ###### DBAL Section ######
     /**
@@ -243,32 +240,32 @@ class jf
     }
     
     
-    ##### Session Section #####
-    static function UserID ()
+    ##### User Session Section #####
+    static function CurrentUser ()
     {
-        return j::$Session->UserID();
+        return jf::$Session->CurrentUser();
     }
     static function Username ()
     {
-        return j::$User->Username();
+        return jf::$User->Username();
     }
     static function Login ($Username, $Password,$Force=null)
     {
-        return j::$User->Login($Username, $Password,$Force);
+        return jf::$User->Login($Username, $Password,$Force);
     }
     static function Logout ()
     {
-        j::$User->Logout();
+        jf::$User->Logout();
     }
     
     ##### RBAC ######
     static function Check($Permission,$UserID=null)
     {
-    	return j::$RBAC->Check($Permission,$UserID);
+    	return jf::$RBAC->Check($Permission,$UserID);
     }
     static function Enforce($Permission)
     {
-    	return j::$RBAC->Enforce($Permission);
+    	return jf::$RBAC->Enforce($Permission);
     }
     
     static public function __Initialize (jfBaseFrontController $App)

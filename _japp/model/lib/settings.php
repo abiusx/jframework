@@ -18,7 +18,7 @@ class SettingManager extends Model
 	private $PreparedSweepStatement=null;
 	private function _Save($Name, $Value, $UserID = 0, $Timeout)
 	{
-		$Datetime = time () + $Timeout;
+		$Datetime = jf::time () + $Timeout;
 		if (!$this->PreparedSaveStatement)    
 	        $this->PreparedSaveStatement=$this->DB->Prepare( "REPLACE INTO {$this->TablePrefix}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
 	    $this->PreparedSaveStatement->Execute( $Name, serialize ( $Value ), $UserID, $Datetime );
@@ -68,7 +68,7 @@ class SettingManager extends Model
 
 	    if (!$this->PreparedSweepStatement)    
 	        $this->PreparedSweepStatement=$this->DB->Prepare("DELETE FROM {$this->TablePrefix}options WHERE Expiration<=?");
-	    $this->PreparedSweepStatement->Execute(time());
+	    $this->PreparedSweepStatement->Execute(jf::time());
 			
 	
 	}
