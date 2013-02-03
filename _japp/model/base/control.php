@@ -113,9 +113,9 @@ abstract class Controller extends Model
 	 * returns View Module name based on current controller name
 	 * this View Module name doesnt include view. and handler. 
 	 */
-	protected function ViewModule()
+	protected function ViewModule($modulename=null)
 	{
-		$modulename=$this->ModuleName();
+		if ($modulename===null) $modulename=$this->ModuleName();
 		$Parts=explode("/",$modulename);
 		$x=array_shift($Parts);
 		if ($x=="jf")
@@ -165,9 +165,8 @@ class AutoController extends Controller
 	 */
 	function Start()
 	{
-		return false;
 		$arg = func_get_arg ( 0 );
-		return $this->View->Present ( $arg );
+		return $this->View->Present ( $this->ViewModule($arg) );
 	}
 }
 abstract class CatchController extends Controller

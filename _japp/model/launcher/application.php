@@ -98,7 +98,9 @@ class ApplicationLauncher extends BaseLauncher
 				if (Controller::$AutoPresent)
 				{
 					$Parts=explode("/",$ControllerModule);
-					array_shift($Parts);
+					$x=array_shift($Parts);
+					if ($x=="jf")
+						array_unshift($Parts,"jf");
 					$ViewModule=implode("/",$Parts);
 					$control = new AutoController();
 					if ($control->Start($ViewModule))

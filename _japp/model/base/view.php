@@ -60,7 +60,6 @@ class View extends Model
 	
 	function Present($ViewModule)
 	{
-
 		if (file_exists ( $this->ModuleFile($ViewModule) ))
 		{
 			$this->ViewModule=$ViewModule;
