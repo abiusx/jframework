@@ -8,12 +8,19 @@ class LibXUserTest extends JDbTest
 	}
 	private function create()
 	{
-		return jf::$XUser->CreateUser("myUsername", "myPassword","me@abiusx.com");
+		return jf::$XUser->CreateUser("myUsername", "myPassword","some@email.com");
 	}
 	function testCreate()
 	{
 		$res=$this->create();
 		$this->assertNotNull($res);
+		
+		$this->assertNull($this->create());
+		$this->assertNotNull(jf::$XUser->CreateUser("newUsername","somePassword","new@email.com"));
+		$this->assertNull(jf::$XUser->CreateUser("NEWusername","somePassword","new@email.com"));
+		$this->assertNull(jf::$XUser->CreateUser("anotherNewUsername","somePassword","new@email.com"));
+		$this->assertNull(jf::$XUser->CreateUser("anotherNewUsername","somePassword","NEW@EmAiL.com"));
+		
 	}
 	/**
 	 * @depends testCreate
@@ -209,4 +216,12 @@ class LibXUserTest extends JDbTest
 		
 	}
 
+	function testFindByEmail()
+	{
+		$UserID=jf::$XUser->CreateUser("myUsername", "myPassword","my@email.com");
+		$this->assertNull(jf::$XUser->FindByEmail("non@existing.com"));
+		$this->assertEquals(jf::$XUser->FindByEmail("my@email.com"), $UserID);
+		
+		
+	}
 }

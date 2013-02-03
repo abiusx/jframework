@@ -219,7 +219,7 @@ class ExtendedUserManager extends UserManager
 	 * @param $Username
 	 * @param $Password
 	 * @param $Email
-	 * @return UserID, null on failure
+	 * @return UserID, null on failure (existing)
 	 */
 	function CreateUser($Username,$Password)
 	{
@@ -227,6 +227,7 @@ class ExtendedUserManager extends UserManager
 		$Email=$Email[2];
 		if ($Email===null)
 			throw new \Exception("You have to provide valid email address.");
+		if ($this->FindByEmail($Email)) return null;
 		$IID=jf::$User->CreateUser($Username,$Password);
 		if ($IID===null) return null;
 		jf::SQL("INSERT INTO {$this->TablePrefix()}xuser (ID,Email,CreateTimestamp,PasswordChangeTimestamp) VALUES (?,?,?,?)",
@@ -359,12 +360,12 @@ class ExtendedUserManager extends UserManager
 	
 	/**
 	 * Returns user ID by email
-	 * @param unknown_type $Email
-	 * @return integer|null
+	 * @param string $Email
+	 * @return integer|null UserID
 	 */
 	function FindByEmail($Email)
 	{
-		$res=jf::SQL("SELECT * FROM {$this->TablePrefix()}xuser WHERE Email=?",$Email);
+		$res=jf::SQL("SELECT * FROM {$this->TablePrefix()}xuser WHERE LOWER(Email)=LOWER(?)",$Email);
 		if ($res)
 		return $res[0]['ID'];
 		else 

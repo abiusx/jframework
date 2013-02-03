@@ -10,6 +10,8 @@ class LibUserTest extends JDbTest
 	{
 		$res=jf::$User->CreateUser("myUsername", "myPassword");
 		$this->assertNotNull($res);
+		$this->assertNull(jf::$User->CreateUser("myUsername", "myPassword"));
+		$this->assertNull(jf::$User->CreateUser("MYusername", "myPassword"));
 	}
 	/**
 	 * @depends testCreate
@@ -19,7 +21,6 @@ class LibUserTest extends JDbTest
 	{
 		$userID=jf::$User->CreateUser("myUsername", "myPassword");
 		$username=jf::$User->Username($userID);
-	
 		$this->assertEquals("myUsername", $username);
 	}
 	
