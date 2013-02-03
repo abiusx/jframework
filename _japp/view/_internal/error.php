@@ -1,4 +1,5 @@
 <?php
+namespace jf;
 ?>
 <!-- <?php
 		echo WHOAMI;
@@ -102,7 +103,7 @@
 <div class="ErrorHolder" dir='ltr'>
 <div class="ErrorContent"><span class="jFrameworkDetect"><?php
 		echo WHOAMI;
-		?> has
+	?> has
 	detected an error in your application:</span> <br />
 <strong><?php if (jf::$ErrorHandler->Shutdown) echo "Fatal ";?>Error <?php
 		echo $errno?> </strong> in <span class="StackFilepath"
@@ -152,6 +153,7 @@
 		<hr />
 		<h4>Call Stack (most recent last):</h4>
 		<div class="StackTrace"><?php
+
 		if (jf::$ErrorHandler->Shutdown)
 			echo "Stack trace not available on fatal error.";			
 		else
@@ -276,10 +278,10 @@ function PresentErrorStack($StackBacktrace,$omit=2)
 }
 function FileLines($File, $Line)
 {
-	$Limit = self::$NumberOfLinesToDisplay / 2;
+	$Limit = ErrorHandler::$NumberOfLinesToDisplay / 2;
 	$f = fopen ( $File, "r" );
 	$LineNumber = 0;
-	$out = array ();
+			$out = array ();
 	while ( ! feof ( $f ) )
 	{
 		$curline = fgets ( $f );
