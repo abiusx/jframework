@@ -100,7 +100,6 @@ class Autoload
 		
 		$Parts=$matches[0];
 		$Type=array_pop($Parts);
-		
 		$ClasstypeToFolderArray=array_flip(self::$ClasstypeArray);
 		if (array_key_exists($Type,$ClasstypeToFolderArray))
 		{
@@ -132,6 +131,8 @@ class Autoload
 		if (!array_key_exists($Classname,self::$List))
 			if (!self::CoreAutoload($Classname))
 				return false;#throw new AutoloadException($Classname);
+			else
+				return true;
 		require_once (self::$List[$Classname]);
 	}
 	
