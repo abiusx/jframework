@@ -179,5 +179,6 @@ CREATE TABLE IF NOT EXISTS `PREFIX_xuser` (
   `LockTimeout` int(16) NOT NULL DEFAULT '0',
   `Activated` int(11) NOT NULL DEFAULT '0',
   `CreateTimestamp` int(11) NOT NULL,
-  PRIMARY KEY (`ID`)
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `Email` (`Email`(128))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

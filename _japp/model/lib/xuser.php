@@ -120,10 +120,10 @@ class ExtendedUserManager extends UserManager
 	}
 
 	/**
-	 * Reset a user by setting its timeouts, failed attempts and last login
+	 * Reset a user by setting its timeouts, failed attempts, last login and temporary password
 	 * @param integer $UserID
 	 */
-	protected function Reset($UserID)
+	public function Reset($UserID)
 	{
 		jf::SQL("UPDATE {$this->TablePrefix()}xuser SET FailedLoginAttempts=0 , LockTimeout=? , LastLoginTimestamp=? , TemporaryResetPasswordTimeout=? WHERE ID=? LIMIT 1",jf::time(),jf::time(),jf::time(),$UserID);
 		
@@ -219,8 +219,7 @@ class ExtendedUserManager extends UserManager
 	 * @param $Username
 	 * @param $Password
 	 * @param $Email
-	 * @return UserID
-	 * 
+	 * @return UserID, null on failure
 	 */
 	function CreateUser($Username,$Password)
 	{
@@ -356,6 +355,20 @@ class ExtendedUserManager extends UserManager
 	{
 		jf::SQL("UPDATE {$this->TablePrefix()}xuser SET CreateTimestamp=?,PasswordChangeTimestamp=?",jf::time(),jf::time()+self::$PasswordLifeTime);
 		return $this->UserInfo($UserID);
+	}
+	
+	/**
+	 * Returns user ID by email
+	 * @param unknown_type $Email
+	 * @return integer|null
+	 */
+	function FindByEmail($Email)
+	{
+		$res=jf::SQL("SELECT * FROM {$this->TablePrefix()}xuser WHERE Email=?",$Email);
+		if ($res)
+		return $res[0]['ID'];
+		else 
+			return null;
 	}
 }
 

@@ -51,7 +51,7 @@ class ErrorHandler
 		{
 			$this->BackupErrorReporting = (error_reporting ());
 			error_reporting ( 0 );
-			set_error_handler ( array ($this, 'Error2Exception' ), E_ALL ); // & ~E_NOTICE );
+			set_error_handler ( array ($this, 'Error2Exception' ));#, E_ALL | E_NOTICE );
 			register_shutdown_function ( array ($this, 'ShutdownFunction' ) );
 		}
 		else
@@ -98,8 +98,7 @@ class ErrorHandler
 	{
 		if (!self::$PresentErrors)
 			return false;
-
-		jf::import("jf/view/_internal/error.php",array(
+		jf::import("jf/view/_internal/error",array(
 		"errno"=>$errno,
 		"errstr"=>$errstr,
 		"errfile"=>$errfile,
@@ -107,6 +106,7 @@ class ErrorHandler
 		"exception"=>$exception,
 		
 		));
+
 		/* Don't execute PHP internal error handler */
 		return false;
 	
@@ -136,7 +136,7 @@ class ErrorHandler
 				case E_PARSE :
 				case E_COMPILE_ERROR :
 				case E_USER_ERROR :
-					// 				case E_NOTICE:
+// 				case E_NOTICE:
 					// 				default:
 					$isError = true;
 					break;
@@ -144,8 +144,8 @@ class ErrorHandler
 		}
 		if ($isError)
 		{
-		$this->Shutdown=true;
-		$this->PresentError ( $error ['type'], $error ['message'], $error ['file'], $error ['line'] );
+			$this->Shutdown=true;
+			$this->PresentError ( $error ['type'], $error ['message'], $error ['file'], $error ['line'] );
 		echo "<h1>Fatal Error</h1>
 <p>Some fatal error caused the application to quit unexpectedly. The error details have been successfully 
 logged for the system administrator to review them later.

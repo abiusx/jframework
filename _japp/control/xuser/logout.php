@@ -1,24 +1,18 @@
 <?php
-class UserLogoutController extends BaseControllerClass 
+class XuserLogoutController extends JControl 
 {
     function Start()
     {
-        $App=$this->App;
-        $View=$this->View;
-        if (!$App->Session->UserID) 
-            $View->Username=null;
-        else
-            $View->Username=$App->Session->Username();
-
-        $App->Session->Logout();
-        
-        setcookie("jFramework_Login_Remember", null,null,"/");
+		$this->Username=jf::$XUser->Username();
+    	
+        jf::$XUser->Logout(jf::CurrentUser());
+        setcookie("jframework_rememberme", null,null);
         if (isset($_GET["return"]))
-            $View->Return=$_GET["return"];
+            $this->Return=$_GET["return"];
         else
-            $View->Return="/user/login";
-        $View->Return=SiteRoot.$View->Return;
-        $this->Present();
+            $this->Return="./login";
+        
+        return $this->Present();
     }
 }
 ?>

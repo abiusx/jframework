@@ -189,36 +189,36 @@ class jf
 	static function DeleteGeneralSetting($Name,$UserID=null)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Options,"DeleteGeneral"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"DeleteGeneral"),$a);	    
 	}
 	
     static function LoadUserSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Options,"Load"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"Load"),$a);	    
 	}
 	static function SaveSessionSetting($Name,$Value,$Timeout = null)
 	{
 		if ($Timeout===null)
 			$Timeout=reg("jf/session/timeout/General");
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Options,"SaveSession"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"SaveSession"),$a);	    
 	}
 	static function DeleteUserSetting($Name,$ID=null)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Options,"Delete"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"Delete"),$a);	    
 	}
 	
 	static function LoadSessionSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Options,"LoadSession"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"LoadSession"),$a);	    
 	}
 	static function DeleteSessionSetting($Name)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Options,"DeleteSession"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"DeleteSession"),$a);	    
 	}
     
     ###### Log Section ######

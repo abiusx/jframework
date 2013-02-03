@@ -43,11 +43,16 @@ class Password
 		$MaxLen=32;
 		if ($Security>.1)
 			$UseUpper=true;
+		else
+			$UseUpper=false;
 		if ($Security>.3)
 			$UseNumbers=true;
+		else
+			$UseNumbers=false;
 		if ($Security>.7)
 			$UseSymbols=true;
-		
+		else
+			$UseSymbols=false;
 		$Length=max($Security*$MaxLen,4);
 		
 		$chars='abcdefghijklmnopqrstuvwxyz';

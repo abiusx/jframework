@@ -60,7 +60,7 @@
 	<input type="submit" value="Login" />
 	<input type="button" value="Back" onclick="history.back()" />
 <?php if (jf::CurrentUser()) {?>
-	<br/><a style="font-size:small" href="<?php echo jf::url();?>/uesr/logout?return=<?php echo urlencode(jf::url());?>/user/login">Sign in as a different user</a>
+	<br/><a style="font-size:small" href="<?php echo jf::url();?>/sys/xuser/logout?return=<?php echo urlencode(jf::url());?>/sys/xuser/login">Sign in as a different user</a>
 	<br/>
 <?php } ?>
 	
