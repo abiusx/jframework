@@ -16,7 +16,7 @@ class TestLauncher extends BaseLauncher
 	{
 		$this->Request=$Request;
 		if (!$this->Launch())
-			jf::import ( self::$ErrorPages[404]);
+			jf::import ( "view/_internal/error/404");
 	}	
 	/**
 	 * Launches a test.

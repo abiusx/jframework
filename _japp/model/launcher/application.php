@@ -163,7 +163,7 @@ class ApplicationLauncher extends BaseLauncher
 		{
 			//not found!
 			if (! headers_sent ()) # no output done, this check prevents controllers that don't return true to fail
-				jf::import ( self::$ErrorPages[404]);
+				jf::import ( "view/_internal/error/404");
 			return false;
 		}
 		return true;

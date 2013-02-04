@@ -5,7 +5,12 @@ class View extends Model
 
 	static $IterativeTemplates=true;
 	static $TemplateFolder="_template";
-	
+	/**
+	 * Presents a template file, e.g _template/head or _template/foot
+	 * @param string $ViewModule
+	 * @param string $Template name
+	 * @return boolean
+	 */
 	private function PresentTemplate($ViewModule,$Template="head")
 	{
 		if (self::$IterativeTemplates)
@@ -24,7 +29,7 @@ class View extends Model
 		
 			if (file_exists ( $this->ModuleFile($templateModule) ))
 			{
-				return jf::import($templateModule);
+				return jf::import($templateModule,array("Append"=>$this->HeadDataAppend,"Prepend"=>$this->HeadDataPrepend));
 			}
 		}
 		return false;
@@ -34,47 +39,79 @@ class View extends Model
 	 * Loads the header from _template/head.php
 	 *
 	 * @param String $ViewModule
+	 * @return boolean
 	 */
 	function PresentHeader($ViewModule)
 	{
 		return $this->PresentTemplate($ViewModule,"head");
 	}
-
+	/**
+	 * Presents the _template/foot.php
+	 * @param unknown_type $ViewModule
+	 * @return boolean
+	 */
 	function PresentFooter($ViewModule)
 	{
 		return $this->PresentTemplate($ViewModule,"foot");
 	}
 
+	/**
+	 * Starts output buffering for main content
+	 */
 	private function StartBuffering()
 	{
-// 		ob_start ();
+		ob_start ();
 	}
-
+	
+	/**
+	 * end and return output buffering
+	 */
 	private function EndBuffering()
 	{
-// 		return ob_get_clean ();
+		return ob_get_clean ();
 	}
 
 	private $ViewModule;
 	
+	/**
+	 * These variables hold extra data that are appended and prepended to the head template, for dynamic titles, etc.
+	 * @var array
+	 */
+	protected $HeadDataAppend=array();
+	protected $HeadDataPrepend=array();
+	/**
+	 * Add something to template header
+	 * @param string $DataString
+	 * @param boolea $Append if true, appends to head, otherwise adds at beginning
+	 */
+	function AddToHead($DataString,$Append=true)
+	{
+		if ($Append)
+			$this->HeadDataAppend[]=$DataString;
+		else
+			$this->HeadDataPrepend[]=$DataString;
+	}
 	
+	/**
+	 * Presents the view with its templates
+	 * @param string $ViewModule
+	 * @return boolean
+	 */
 	function Present($ViewModule)
 	{
 		if (file_exists ( $this->ModuleFile($ViewModule) ))
 		{
 			$this->ViewModule=$ViewModule;
 			
-// 			$this->StartBuffering ();
-			$this->PresentHeader ($ViewModule);
-// 			$HeadContent = $this->EndBuffering ();
-
-// 			$this->StartBuffering ();
+			$this->StartBuffering ();
 			include $this->ModuleFile($ViewModule);
-// 			$MainContent = $this->EndBuffering ();
-			
-// 			$this->StartBuffering ();
+			$MainContent = $this->EndBuffering ();
+
+			$this->PresentHeader ($ViewModule);
+
+			echo $MainContent;
+
 			$this->PresentFooter ($ViewModule);
-// 			$FootContent = $this->EndBuffering ();
 			
 			return true;
 		}

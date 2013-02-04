@@ -1,27 +1,27 @@
 <?php
-class LogsViewController extends BaseControllerClass
+class LogsViewController extends JControl
 {
     function Start()
     {
     	if (isset($_POST['DelSeverity']))
     	{
-    		j::SQL("DELETE FROM `".reg("jf/log/table/name")."` WHERE `".reg("jf/log/table/Severity")."`<=?",$_POST['DelSeverity']);
+    		jf::SQL("DELETE FROM {$this->TablePrefix()}logs WHERE Severity<=?",$_POST['DelSeverity']);
     		
     	}
     	if (isset($_POST['DelSubject']))
     	{
-    		j::SQL("DELETE FROM `".reg("jf/log/table/name")."` WHERE `".reg("jf/log/table/Subject")."`=?",$_POST['DelSubject']);
+    		jf::SQL("DELETE FROM {$this->TablePrefix()}logs WHERE Subject=?",$_POST['DelSubject']);
     		
     	}
     	if (is_array($_POST['Log']))
     	{
     		foreach ($_POST['Log'] as $L)
-    			j::SQL("DELETE FROM `".reg("jf/log/table/name")."` WHERE `".reg("jf/log/table/LogID")."`=?",$L);
+    			jf::SQL("DELETE FROM {$this->TablePrefix()}logs WHERE ID=?",$L);
     	}
 
     	if (isset($_POST['DelOffset']))
     	{
-    			j::SQL("DELETE FROM `".reg("jf/log/table/name")."` LIMIT {$_POST['DelOffset']},{$_POST['DelLimit']}");
+    			jf::SQL("DELETE FROM {$this->TablePrefix()}logs LIMIT {$_POST['DelOffset']},{$_POST['DelLimit']}");
     	}
     	
     	$lim=100;
@@ -30,7 +30,7 @@ class LogsViewController extends BaseControllerClass
     		$lim=$_GET['lim']*1;
     	if (isset($_GET['off']))
     		$off=$_GET['off']*1;
-    	$this->Logs=j::SQL("SELECT * FROM `".reg("jf/log/table/name")."` ORDER BY `".reg("jf/log/table/Timestamp")."` DESC LIMIT {$off},{$lim}");
+    	$this->Logs=jf::SQL("SELECT * FROM {$this->TablePrefix()}logs ORDER BY Timestamp DESC LIMIT {$off},{$lim}");
     	$this->Offset=$off;
     	$this->Limit=$lim;
         $this->Present();

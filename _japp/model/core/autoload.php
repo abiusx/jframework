@@ -138,6 +138,7 @@ class Autoload
 	
 	/**
 	 * Add a single rule for autoload handling. Classname and file to include. Nothing is appended to file.
+	 * To get the file for a module, use moduleFile function of JModel class (available in almost all objects)
 	 * overwrites on existence
 	 * @param string $Classname
 	 * @param string $File
