@@ -2,11 +2,10 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<?php echo implode("\n",$Prepend);?>
 <title><?php echo jf_Application_Title; ?></title>
-<?php 
-	#TODO: header hook
-?>
 <link rel="shortcut icon" href="<?php echo (jf::url());?>/img/jlogo.png" />
 <link rel="stylesheet" href="<?php echo (jf::url());?>/style/base.css" />
+<?php echo implode("\n",$Append);?>
 </head>
 <body>

@@ -85,10 +85,11 @@ class BaseFrontController
 
 	static $IndexPage="main"; //default page
 	/**
-	 * Handles a whole web request to this jFramework Application
+	 * Initializes the framework
+	 * @param string $Request used to understand the environment. You can re-apply this value to run.
 	 *
 	 */
-	public function Start($Request)
+	public function Init($Request)
 	{
 		jf::$Request=$Request;
 
@@ -113,12 +114,12 @@ class BaseFrontController
 	{
 		if (! $this->Started)
 		{
-			throw new Exception( "You should start jFramework before trying to run a request" );
+			throw new Exception( "You should init jframework before trying to run a request" );
 			return false;
 		}
 		if ($Request === null)
 			$Request = jf::$Request;
-		
+		jf::$Request=$Request;
 		$Parts=explode("/",$Request);
 		$Type=array_shift($Parts);
 

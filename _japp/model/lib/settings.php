@@ -1,22 +1,16 @@
 <?php
 /**
- * ApplicationOptions class
- * @version 1.5
- *
- * Saves and Restores options for session,user and application on database.
- *
+ * SettingManager class
+ * Save and load settings on a scope of general, user or session.
+ * @version 2.0
+ * @author abiusx
  */
-#TODO: port to jf4
 //Note: userID = 0 means general option
 namespace jf;
 class SettingManager extends Model
 {
 	static $DefaultTimeout=86400; //24*60*60;
-	private $PreparedLoadSetStatement=null;
-	private $PreparedLoadStatement=null;
-	private $PreparedSaveStatement=null;
-	private $PreparedDeleteStatement=null;
-	private $PreparedSweepStatement=null;
+	
 	private function _Save($Name, $Value, $UserID = 0, $Timeout)
 	{
 		$Datetime = jf::time () + $Timeout;
@@ -81,7 +75,7 @@ class SettingManager extends Model
 	 * 
 	 */
 	
-	function _Loads($UserID)
+	private function _Loads($UserID)
 	{
 	    if (func_num_args()<2) return false;
 	    $Params=func_get_args();
@@ -98,7 +92,7 @@ class SettingManager extends Model
 	    
 		$Res = 
 		call_user_func_array(array($this->DB,"Execute"),
-		 array_merge(array("SELECT Name,Value FROM {$this->TablePrefix}options WHERE UserID=? ".
+		 array_merge(array("SELECT Name,Value FROM {$this->TablePrefix()}options WHERE UserID=? ".
 			" AND ($Q)"), array($UserID),$Params));
 		if (count ( $Res ))
 		{
@@ -135,10 +129,10 @@ class SettingManager extends Model
 	{
 		if ($UserID===null)
 		{
-			if ($this->App->Session->UserID == null)
-				$this->App->FatalError ( "Can not load user options without a logged in user." );
+			if (jf::CurrentUser() == null)
+				throw new \Exception ( "Can not load user options without a logged in user." );
 			else
-				$UserID=$this->App->Session->UserID;
+				$UserID=jf::CurrentUser();
 		}
 		
 		if ($Timeout===null ) $Timeout=TIMESTAMP_WEEK;
@@ -149,36 +143,36 @@ class SettingManager extends Model
 	{
 		if ($UserID===null)
 		{
-			if ($this->App->Session->UserID == null)
-				$this->App->FatalError ( "Can not load user options without a logged in user." );
+			if (jf::CurrentUser() == null)
+				throw new \Exception ( "Can not load user options without a logged in user." );
 			else
-				$UserID=$this->App->Session->UserID;
+				$UserID=jf::CurrentUser();
 		}
 		return $this->_Load ( $Name, $UserID );
 	
 	}
 	function LoadSet($Prefix)
 	{
-		if ($this->App->Session->UserID == null)
-			$this->App->FatalError ( "Can not load user options without a logged in user." );
-		return $this->_LoadSet ( $Prefix, $this->App->Session->UserID );
+		if (jf::CurrentUser() == null)
+			throw new \Exception ( "Can not load user options without a logged in user." );
+		return $this->_LoadSet ( $Prefix, jf::CurrentUser() );
 	}
 	function Delete($Name,$UserID=null)
 	{
 		if ($UserID===null)
 		{
-			if ($this->App->Session->UserID == null)
-				$this->App->FatalError ( "Can not delete user options without a logged in user." );
+			if (jf::CurrentUser()== null)
+				throw new \Exception ( "Can not delete user options without a logged in user." );
 			else
-				$UserID=$this->App->Session->UserID;
+				$UserID=jf::CurrentUser();
 		}
 		$this->_Delete ( $Name, $UserID );
 	}
 	function DeleteAll()
 	{
-		if ($this->App->Session->UserID == null)
-			$this->App->FatalError ( "Can not delete user options without a logged in user." );
-		$this->Execute (  "DELETE FROM {$this->TablePrefix}options WHERE UserID=?", $this->App->Session->UserID );
+		if (jf::CurrentUser() == null)
+			throw new \Exception ( "Can not delete user options without a logged in user." );
+		$this->Execute (  "DELETE FROM {$this->TablePrefix()}options WHERE UserID=?", jf::CurrentUser() );
 	}
 	function DeleteGeneral($Name)
 	{
@@ -186,7 +180,7 @@ class SettingManager extends Model
 	}
 	function SaveSession($Name,$Value,$Timeout = null)
 	{
-		if ($Timeout===null) $Timeout=reg("jf/session/timeout/General");
+		if ($Timeout===null) $Timeout=self::$DefaultTimeout;
 	    $this->SaveGeneral(session_id()."_$Name",$Value,$Timeout);   
 	}
 	function LoadSession($Name)
@@ -201,5 +195,10 @@ class SettingManager extends Model
 	{
         $this->DeleteGeneral(session_id()."_$Name");
 	}
+	private $PreparedLoadSetStatement=null;
+	private $PreparedLoadStatement=null;
+	private $PreparedSaveStatement=null;
+	private $PreparedDeleteStatement=null;
+	private $PreparedSweepStatement=null;
 }
 ?>

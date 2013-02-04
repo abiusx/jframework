@@ -6,7 +6,7 @@
 class UseragentMobilePlugin
 {
 		
-	function IsMobileUserAgent ()
+	static function IsMobileUserAgent ()
 	{
 	    $UserAgent = $_SERVER['HTTP_USER_AGENT']; // get the user agent value - this should be cleaned to ensure no nefarious input gets executed
 	    $accept = $_SERVER['HTTP_ACCEPT']; // get the content accept value - this should be cleaned to ensure no nefarious input gets executed

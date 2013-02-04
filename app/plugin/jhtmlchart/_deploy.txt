@@ -1,3 +1,0 @@
-to deploy this plugin, copy its script folder into Plugins folder of jFramework,
-Then copy its images folder into your img folder, then open main.php and
-set plugin_path and image_path constants there.

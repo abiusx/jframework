@@ -30,7 +30,7 @@ if ($Request!==null)
 	$jFramework = \jf\FrontController::GetSingleton ();
 	try
 	{
-		$jFramework->Start ( $Request );
+		$jFramework->Init ( $Request );
 	} catch ( Exception $e )
 	{
 		try

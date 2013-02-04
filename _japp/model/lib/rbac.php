@@ -38,9 +38,9 @@ class RBACManager extends Model
     function __construct()
     {
 
-    	$this->Permissions=new FullNestedSet($this->TablePrefix."rbac_permissions","ID",
+    	$this->Permissions=new FullNestedSet($this->TablePrefix()."rbac_permissions","ID",
             "Left","Right");
-        $this->Roles=new FullNestedSet($this->TablePrefix."rbac_roles","ID",
+        $this->Roles=new FullNestedSet($this->TablePrefix()."rbac_roles","ID",
             "Left","Right");
     }
     
@@ -178,15 +178,16 @@ class RBACManager extends Model
 			trigger_error("Make sure you want to reset all roles first!");
 			return;
 		}
-        j::SQL("DELETE FROM {$this->TablePrefix}rbac_roles");	    
+        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_roles");	    
         $this->Role_Add("root","root");
-        j::SQL("UPDATE {$this->TablePrefix}rbac_roles SET ID = '0'");
-        if (reg("app/db/default/type")=="mysql") 
-        	j::SQL("ALTER TABLE {$this->TablePrefix}rbac_roles AUTO_INCREMENT =1 ");
-       	elseif (reg("app/db/default/type")=="sqlite")
-        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix."rbac_roles");
+        j::SQL("UPDATE {$this->TablePrefix()}rbac_roles SET ID = '0'");
+        $Adapter=DatabaseManager::Configuration()->Adapter;
+        if ($Adapter=="mysqli" or $Adapter=="pdo_mysql") 
+        	j::SQL("ALTER TABLE {$this->TablePrefix()}rbac_roles AUTO_INCREMENT =1 ");
+       	elseif ($Adapter=="pdo_sqlite")
+        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix()."rbac_roles");
         else
-			trigger_error("RBAC can not reset table on this type of database:".reg("app/db/default/type"));
+			trigger_error("RBAC can not reset table on this type of database: {$Adapter}");
         
 	}
 	###############################
@@ -321,15 +322,17 @@ class RBACManager extends Model
 			trigger_error("Make sure you want to reset all permissions first!");
 			return;
 		}
-		j::SQL("DELETE FROM {$this->TablePrefix}rbac_permissions");	    
+		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_permissions");	    
         $this->Permission_Add("root","root");
-        j::SQL("UPDATE {$this->TablePrefix}rbac_permissions SET ID = '0'");
-        if (reg("app/db/default/type")=="mysql") 
-        	j::SQL("ALTER TABLE {$this->TablePrefix}rbac_permissions AUTO_INCREMENT =1 ");
-       	elseif (reg("app/db/default/type")=="sqlite")
-        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix."rbac_permissions");
+        j::SQL("UPDATE {$this->TablePrefix()}rbac_permissions SET ID = '0'");
+        $Adapter=DatabaseManager::Configuration()->Adapter;
+        if ($Adapter=="mysqli" or $Adapter=="pdo_mysql") 
+        	j::SQL("ALTER TABLE {$this->TablePrefix()}rbac_permissions AUTO_INCREMENT =1 ");
+       	elseif ($Adapter=="pdo_sqlite")
+        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix()."rbac_permissions");
         else
-			trigger_error("RBAC can not reset table on this type of database: ".reg("app/db/default/type"));
+			trigger_error("RBAC can not reset table on this type of database: {$Adapter}");
+        
 	}
 	
 	##############################
@@ -346,9 +349,9 @@ class RBACManager extends Model
 	function User_AssignRole($Role,$UserID=null,$Replace=false)
 	{
 	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if ($UserID===null) $UserID=$this->App->Session->UserID;
+	    if ($UserID===null) $UserID=jf::CurrentUser();
         $Query=$Replace?"REPLACE":"INSERT INTO";
-        j::SQL("{$Query} {$this->TablePrefix}rbac_userroles 
+        j::SQL("{$Query} {$this->TablePrefix()}rbac_userroles 
         (UserID,RoleID,AssignmentDate)
         VALUES (?,?,?)
         ",$UserID,$Role,jf::time());
@@ -362,8 +365,8 @@ class RBACManager extends Model
 	function User_UnassignRole($Role,$UserID=null)
 	{
 	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if ($UserID===null) $UserID=$this->App->Session->UserID;
-        j::SQL("DELETE FROM {$this->TablePrefix}rbac_userroles 
+	    if ($UserID===null) $UserID=jf::CurrentUser();
+        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_userroles 
 		WHERE UserID=? AND RoleID=?"
         ,$UserID,$Role);
 	}
@@ -387,24 +390,24 @@ class RBACManager extends Model
 	    else 
 	        $SortBy="";    
 	    if ($OnlyIDs)
-	        return j::SQL("SELECT * FROM {$this->TablePrefix}rbac_userroles{$Limit}");
+	        return j::SQL("SELECT * FROM {$this->TablePrefix()}rbac_userroles{$Limit}");
 	    else  
 	        return j::SQL("SELECT TRel.AssignmentDate AS AssignmentDate,
 	        TU.ID AS UserID,TU.Username
 	        AS Username,TR.ID AS RoleID , TR.Title
 	         AS RoleTitle,TR.Description AS RoleDescription 
 	        FROM 
-			{$this->TablePrefix}rbac_userroles AS `TRel` 
-			JOIN {$this->TablePrefix}.users AS `TU` ON 
+			{$this->TablePrefix()}rbac_userroles AS `TRel` 
+			JOIN {$this->TablePrefix()}.users AS `TU` ON 
 			(`TRel`.UserID=TU.ID)
-			JOIN {$this->TablePrefix}rbac_roles AS `TR` ON 
+			JOIN {$this->TablePrefix()}rbac_roles AS `TR` ON 
 			(`TRel`.RoleID=`TR`.ID)
 	        {$SortBy}{$Limit}"
 	        );
 	}
 	function User_AllAssignmentsCount()
 	{
-        $Res=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix}rbac_userroles");
+        $Res=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}rbac_userroles");
         return $Res[0]['Result'];
 	}	
 	
@@ -426,7 +429,7 @@ class RBACManager extends Model
 	    else $Query="INSERT INTO";
 	    
 	    
-	    j::SQL("{$Query} {$this->TablePrefix}rbac_rolepermissions 
+	    j::SQL("{$Query} {$this->TablePrefix()}rbac_rolepermissions 
 	    (RoleID,PermissionID,AssignmentDate)
 	    VALUES (?,?,?)",$Role,$Permission,jf::time());
 	}
@@ -440,26 +443,26 @@ class RBACManager extends Model
 	{
 	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
 	    if (!is_numeric($Permission)) $Permission=$this->Permission_ID($Permission);
-        j::SQL("DELETE FROM {$this->TablePrefix}rbac_rolepermissions WHERE 
+        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE 
         RoleID=? AND PermissionID=?",$Role,$Permission );
 	}
 	
 	function UnassignRolePermissions ($Role)
 	{
 		if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-		j::SQL("DELETE FROM {$this->TablePrefix}rbac_rolepermissions WHERE 
+		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE 
         RoleID=? ",$Role);
 	}
 	function UnassignPermissionRoles ($Permission)
 	{
 	    if (!is_numeric($Permission)) $Permission=$this->Permission_ID($Permission);
-        j::SQL("DELETE FROM {$this->TablePrefix}rbac_rolepermissions WHERE 
+        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE 
         PermissionID=?",$Permission );
 	}
 	function UnassignRoleUsers($Role)
 	{
 		if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-		j::SQL("DELETE FROM {$this->TablePrefix}rbac_userroles WHERE 
+		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_userroles WHERE 
         RoleID=?",$Role);
 	}
 	function Assignment_Reset($Ensure=false)
@@ -469,13 +472,14 @@ class RBACManager extends Model
 			trigger_error("Make sure you want to reset all assignments first!");
 			return;
 		}
-		j::SQL("DELETE FROM {$this->TablePrefix}rbac_rolepermissions");
-        if (reg("app/db/default/type")=="mysql") 
-        	j::SQL("ALTER TABLE {$this->TablePrefix}rbac_rolepermissions AUTO_INCREMENT =1 ");
-       	elseif (reg("app/db/default/type")=="sqlite")
-        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix."_rbac_rolepermissions");
+		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions");
+        $Adapter=DatabaseManager::Configuration()->Adapter;
+        if ($Adapter=="mysqli" or $Adapter=="pdo_mysql") 
+        	j::SQL("ALTER TABLE {$this->TablePrefix()}rbac_rolepermissions AUTO_INCREMENT =1 ");
+       	elseif ($Adapter=="pdo_sqlite")
+        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix()."_rbac_rolepermissions");
         else
-			trigger_error("RBAC can not reset table on this type of database:".reg("app/db/default/type"));
+			trigger_error("RBAC can not reset table on this type of database: {$Adapter}");
 		$this->Assign("root","root",true);
 		return true;
 	}     
@@ -492,7 +496,7 @@ class RBACManager extends Model
 	    if ($OnlyIDs)
 	    {
 	        $Res=j::SQL("SELECT PermissionID AS `ID` FROM
-			{$this->TablePrefix}rbac_rolepermissions WHERE RoleID=?"
+			{$this->TablePrefix()}rbac_rolepermissions WHERE RoleID=?"
 	        ,$Role);
 	        foreach ($Res as $R)
 	            $out[]=$R['ID'];
@@ -500,7 +504,7 @@ class RBACManager extends Model
 	    }
 	    else
 	        return j::SQL("SELECT `TP`.* FROM 
-			{$this->TablePrefix}rbac_rolepermissions AS `TR` RIGHT JOIN {$this->TablePrefix}rbac_permissions AS `TP` ON 
+			{$this->TablePrefix()}rbac_rolepermissions AS `TR` RIGHT JOIN {$this->TablePrefix()}rbac_permissions AS `TP` ON 
 			(`TR`.PermissionID=`TP`.ID)
 			WHERE RoleID=?"
 	        ,$Role);
@@ -518,7 +522,7 @@ class RBACManager extends Model
 	    if ($OnlyIDs)
 	    {
 	        $Res=j::SQL("SELECT RoleID AS `ID` FROM
-			{$this->TablePrefix}rbac_rolepermissions WHERE PermissionID=?"
+			{$this->TablePrefix()}rbac_rolepermissions WHERE PermissionID=?"
 	        ,$Permission);
 	        foreach ($Res as $R)
 	            $out[]=$R['ID'];
@@ -526,7 +530,7 @@ class RBACManager extends Model
 	    }
 	    else
 	        return j::SQL("SELECT `TP`.* FROM 
-			{$this->TablePrefix}rbac_rolepermissions AS `TR` RIGHT JOIN {$this->TablePrefix}rbac_roles AS `TP` ON 
+			{$this->TablePrefix()}rbac_rolepermissions AS `TR` RIGHT JOIN {$this->TablePrefix()}rbac_roles AS `TP` ON 
 			(`TR`.RoleID=`TP`.ID)
 			WHERE PermissionID=?"
 	        ,$Permission);
@@ -550,24 +554,24 @@ class RBACManager extends Model
 	    else 
 	        $SortBy="";    
 	    if ($OnlyIDs)
-	        return j::SQL("SELECT * FROM {$this->TablePrefix}rbac_rolepermissions{$Limit}");
+	        return j::SQL("SELECT * FROM {$this->TablePrefix()}rbac_rolepermissions{$Limit}");
 	    else 
 	        return j::SQL("SELECT TRel.AssignmentDate AS AssignmentDate,
 	        TP.ID AS PermissionID,TP.Title
 	        AS PermissionTitle, TP.Description AS PermissionDescription,TR.`".
 	        "ID"."` AS RoleID , TR.Title AS RoleTitle,TR.Description AS RoleDescription 
 	        FROM 
-			{$this->TablePrefix}rbac_rolepermissions AS `TRel` 
-			JOIN {$this->TablePrefix}rbac_permissions AS `TP` ON 
+			{$this->TablePrefix()}rbac_rolepermissions AS `TRel` 
+			JOIN {$this->TablePrefix()}rbac_permissions AS `TP` ON 
 			(`TRel`.PermissionID=`TP`.ID)
-			JOIN {$this->TablePrefix}rbac_roles AS `TR` ON 
+			JOIN {$this->TablePrefix()}rbac_roles AS `TR` ON 
 			(`TRel`.RoleID=`TR`.ID)
 	        {$SortBy}{$Limit}"
 	        );
 	}
 	function Assignments_Count()
 	{
-        $Res=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix}rbac_rolepermissions");
+        $Res=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}rbac_rolepermissions");
         return $Res[0]['Result'];
 	}
 	
@@ -595,23 +599,23 @@ class RBACManager extends Model
 	        $PermissionCondition="Title=?";
 	        $Index=1;
 	    }
-	    if ($UserID===null) $UserID=$this->App->Session->UserID;
+	    if ($UserID===null) $UserID=jf::CurrentUser();
 	    if (!$this->PreparedStatement_Check[$Index])
 	    {
-	    	$this->PreparedStatement_Check[$Index]=$this->DB->Prepare
+	    	$this->PreparedStatement_Check[$Index]=jf::db()->prepare
     ("SELECT COUNT(*) AS Result
     FROM /* Version 2.05 */ 
-    	{$this->TablePrefix}users AS TU
-    JOIN {$this->TablePrefix}rbac_userroles AS TUrel ON (TU.ID=TUrel.UserID)
+    	{$this->TablePrefix()}users AS TU
+    JOIN {$this->TablePrefix()}rbac_userroles AS TUrel ON (TU.ID=TUrel.UserID)
     	
-    JOIN {$this->TablePrefix}rbac_roles AS TRdirect ON (TRdirect.ID=TUrel.RoleID) 
-    JOIN {$this->TablePrefix}rbac_roles AS TR ON ( TR.Left BETWEEN TRdirect.Left AND TRdirect.Right)
+    JOIN {$this->TablePrefix()}rbac_roles AS TRdirect ON (TRdirect.ID=TUrel.RoleID) 
+    JOIN {$this->TablePrefix()}rbac_roles AS TR ON ( TR.Left BETWEEN TRdirect.Left AND TRdirect.Right)
     /* we join direct roles with indirect roles to have all descendants of direct roles */
     JOIN 
-    (	{$this->TablePrefix}rbac_permissions AS TPdirect 
-    	JOIN {$this->TablePrefix}rbac_permissions AS TP ON ( TPdirect.Left BETWEEN TP.Left AND TP.Right)
+    (	{$this->TablePrefix()}rbac_permissions AS TPdirect 
+    	JOIN {$this->TablePrefix()}rbac_permissions AS TP ON ( TPdirect.Left BETWEEN TP.Left AND TP.Right)
     /* direct and indirect permissions */
-    	JOIN {$this->TablePrefix}rbac_rolepermissions AS TRel ON (TP.ID=TRel.PermissionID)
+    	JOIN {$this->TablePrefix()}rbac_rolepermissions AS TRel ON (TP.ID=TRel.PermissionID)
     /* joined with role/permissions on roles that are in relation with these permissions*/
     ) ON ( TR.ID = TRel.RoleID)
     WHERE 
@@ -620,11 +624,11 @@ class RBACManager extends Model
 	    TPdirect.{$PermissionCondition}
 	    ");
 	    }
-	    $this->PreparedStatement_Check[$Index]->Run(
+	    $this->PreparedStatement_Check[$Index]->execute(
 	   	$UserID
 	    ,$Permission
 	    );
-        $Res=$this->PreparedStatement_Check[$Index]->AllResult();
+        $Res=$this->PreparedStatement_Check[$Index]->fetchAll();
 	    
 	    return $Res[0]['Result'];
 	}
@@ -645,18 +649,18 @@ class RBACManager extends Model
 	    
 	    $Res=j::SQL("
     SELECT COUNT(*) AS Result
-    FROM {$this->TablePrefix}rbac_rolepermissions AS TRel
-    JOIN {$this->TablePrefix}rbac_permissions AS TP ON ( TP.ID= TRel.PermissionID)
-    JOIN {$this->TablePrefix}rbac_roles AS TR ON ( TR.ID = TRel.RoleID)
+    FROM {$this->TablePrefix()}rbac_rolepermissions AS TRel
+    JOIN {$this->TablePrefix()}rbac_permissions AS TP ON ( TP.ID= TRel.PermissionID)
+    JOIN {$this->TablePrefix()}rbac_roles AS TR ON ( TR.ID = TRel.RoleID)
     WHERE TR.Left BETWEEN 
-    	(SELECT Left FROM {$this->TablePrefix}rbac_roles WHERE {$RoleCondition}) 
+    	(SELECT Left FROM {$this->TablePrefix()}rbac_roles WHERE {$RoleCondition}) 
     	AND 
-    	(SELECT Right FROM {$this->TablePrefix}rbac_roles WHERE {$RoleCondition})
+    	(SELECT Right FROM {$this->TablePrefix()}rbac_roles WHERE {$RoleCondition})
 /* the above section means any row that is a descendants of our role (if descendant roles have some permission, then our role has it two) */
     AND TP.ID IN (
                 SELECT parent.ID 
-                FROM {$this->TablePrefix}rbac_permissions AS node,
-                {$this->TablePrefix}rbac_permissions AS parent
+                FROM {$this->TablePrefix()}rbac_permissions AS node,
+                {$this->TablePrefix()}rbac_permissions AS parent
                 WHERE node.Left BETWEEN parent.Left AND parent.Right
                 AND ( {$PermissionCondition} )
                 ORDER BY parent.Left
@@ -677,9 +681,11 @@ the above section returns all the parents of (the path to) our permission, so if
 	{
 	    if (!$this->Check($Permission))
 	    {
-	    	define ("Permission",$Permission);
-			$this->App->LoadApplicationModule(jf_RBAC_401ErrorView);
-			exit();
+	    	if (jf::CurrentUser())
+				jf::import("view/_internal/error/403",array("Permission"=>$Permission));
+	    	else
+				jf::import("view/_internal/error/401",array("Permission"=>$Permission));
+	    	exit();
 	    }
 	}
 	/**
@@ -691,9 +697,9 @@ the above section returns all the parents of (the path to) our permission, so if
 	function UserInRole($User=null,$Role)
 	{
 		
-		if ($User===null) $User=$this->App->Session->UserID();
+		if ($User===null) $User=jf::CurrentUser();
 	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-		$R=jf::SQL("SELECT * FROM {$this->TablePrefix}rbac_userroles WHERE
+		$R=jf::SQL("SELECT * FROM {$this->TablePrefix()}rbac_userroles WHERE
 		UserID=? AND RoleID=?",$User,$Role);
 		if ($R) return true;
 		else return false;
