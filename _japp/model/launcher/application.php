@@ -3,7 +3,7 @@ namespace jf;
 /**
  * Application launcher. Gets a request (of type application) and runs the corresponding controller.
  * @author abiusx
- * @version 1.0
+ * @version 1.01
  */
 class ApplicationLauncher extends BaseLauncher
 {
@@ -77,6 +77,7 @@ class ApplicationLauncher extends BaseLauncher
 	 */
 	function StartController($ControllerModule)
 	{
+		#FIXME: where empty string is found in parts, it should be replaced with main
 		//Loading controller file
 		try
 		{
@@ -98,9 +99,9 @@ class ApplicationLauncher extends BaseLauncher
 				if (Controller::$AutoPresent)
 				{
 					$Parts=explode("/",$ControllerModule);
-					$x=array_shift($Parts);
-					if ($x=="jf")
-						array_unshift($Parts,"jf");
+// 					$x=array_shift($Parts);
+// 					if ($x=="jf")
+// 						array_unshift($Parts,"jf");
 					$ViewModule=implode("/",$Parts);
 					$control = new AutoController();
 					if ($control->Start($ViewModule))

@@ -90,7 +90,7 @@ abstract class Controller extends Model
 	 */
 	function Redirect($NewLocation, $RedirectParamsAsWell = false,$HowManyParamsToStrip=0)
 	{
-		if ($RedirectQueryString)
+		if ($RedirectParamsAsWell)
 		{
 			$x = explode ( "&", HttpRequest::QueryString () );
 			while ($HowManyParamsToStrip--) if (is_array ( $x ) && count ( $x ) > 1) array_shift ( $x );
@@ -138,7 +138,7 @@ abstract class Controller extends Model
 
 	function __destruct()
 	{
-		if (! $this->Presented && self::$AutoPresent) $this->Present ();
+// 		if (! $this->Presented && self::$AutoPresent) $this->Present ();
 	}
 	
 	
