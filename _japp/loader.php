@@ -5,7 +5,7 @@ if (isset ( $_GET ['__r'] )) //HTTP
 	$Request = ($_GET ['__r']);
 	unset ( $_GET ['__r'] );
 }
-if ($argc>1) //SAPI
+if (isset($argc) && $argc>1) //SAPI
 {
 	$Request=$argv[1];
 	if (strpos($Request, "?")!==false)
