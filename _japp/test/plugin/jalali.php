@@ -42,8 +42,8 @@ class PluginJalaliTest extends JTest
 		$this->assertEquals(Jalali::ToTimestamp(1391, 11, 15,1,39),strtotime(date("Y-m-d",$this->Timestamp))+3600+39*60);
 		
 		
-		$this->assertEquals(Jalali::ToTimestamp(1391, 11, 15,1,39,26),$this->Timestamp);
-		$this->assertEquals(Jalali::ToTimestamp("1391-11-15 1:39:26"),$this->Timestamp);
+		$this->assertEquals(Jalali::ToTimestamp(1391, 11, 15,1,39,26),strtotime(date("Y-m-d",$this->Timestamp))+3600+39*60+26);
+		$this->assertEquals(Jalali::ToTimestamp("1391-11-15 1:39:26"),strtotime(date("Y-m-d",$this->Timestamp))+3600+39*60+26);
 	}
 
 }
