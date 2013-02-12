@@ -128,10 +128,12 @@ class View extends Model
 	 */
 	function Represent($RelativePath)
 	{
-		$x = new jpTrimEnd ( $this->ViewTitle );
-		$x=$x->__toString();
-		if ($x != "") $x .= constant ( "jf_jPath_Module_Delimiter" );
-		return $this->OutputFile ( $x . $RelativePath );
+		$Parts=explode("/",$this->ViewModule);
+		array_pop($Parts);
+		$NewParts=explode("/",$RelativePath);
+		$Parts=array_merge($Parts,$NewParts);
+		$NewModule=implode("/",$Parts);
+		include $this->ModuleFile($NewModule);
 	}
 	
 	
