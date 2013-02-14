@@ -29,7 +29,7 @@ class View extends Model
 		
 			if (file_exists ( $this->ModuleFile($templateModule) ))
 			{
-				return jf::import($templateModule,array("Append"=>$this->HeadDataAppend,"Prepend"=>$this->HeadDataPrepend));
+				return jf::run($templateModule,array("Append"=>$this->HeadDataAppend,"Prepend"=>$this->HeadDataPrepend));
 			}
 		}
 		return false;

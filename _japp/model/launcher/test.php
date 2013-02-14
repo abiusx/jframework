@@ -16,7 +16,7 @@ class TestLauncher extends BaseLauncher
 	{
 		$this->Request=$Request;
 		if (!$this->Launch())
-			jf::import ( "view/_internal/error/404");
+			jf::run ( "view/_internal/error/404");
 	}	
 	/**
 	 * Launches a test.
@@ -85,7 +85,7 @@ class TestLauncher extends BaseLauncher
 			$file="cli";
 		else
 			$file='web';
-		jf::import("jf/view/_internal/test/result/{$file}",array("result"=>$Result,"profiler"=>$Profiler));
+		jf::run("jf/view/_internal/test/result/{$file}",array("result"=>$Result,"profiler"=>$Profiler));
 		
 	}
 	

@@ -5,5 +5,11 @@ class MainTest extends JTestSuite
 	{
 		$this->add("jf/test/lib/main");
 	}
+	
+	function testStress()
+	{
+		for ($i=0;$i<100;++$i)
+			$this->assertTrue(jf::$App->Run(""));
+	}
 
 }

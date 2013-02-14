@@ -682,9 +682,9 @@ the above section returns all the parents of (the path to) our permission, so if
 	    if (!$this->Check($Permission))
 	    {
 	    	if (jf::CurrentUser())
-				jf::import("view/_internal/error/403",array("Permission"=>$Permission));
+				jf::run("view/_internal/error/403",array("Permission"=>$Permission));
 	    	else
-				jf::import("view/_internal/error/401",array("Permission"=>$Permission));
+				jf::run("view/_internal/error/401",array("Permission"=>$Permission));
 	    	exit();
 	    }
 	}

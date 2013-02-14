@@ -59,6 +59,21 @@ class jf
 			
 	}
 	/**
+	 * Runs a module. The difference with import is that this one uses require instead of require_once
+	 * @param unknown_type $module
+	 * @param unknown_type $scopeVars
+	 */
+	static function run($module,$scopeVars=null)
+	{
+		$file=jf::moduleFile($module);
+		if (!file_exists($file))
+			throw new ImportException("File not found : {$file}");
+		if (is_array($scopeVars)) foreach ( $scopeVars as $ArgName => $ArgValue )
+			${$ArgName} = $ArgValue;
+		require($file);
+		
+	}
+	/**
 	 * Returns a database connection which is already established
 	 * If no index provided, first (default) connection will be returned
 	 * @param integer $Index

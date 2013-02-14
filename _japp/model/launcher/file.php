@@ -14,7 +14,7 @@ class FileLauncher extends BaseLauncher
 	{
 		$this->Request=$Request;
 		if (!$this->Launch())
-				jf::import ( "view/_internal/error/404");
+				jf::run ( "view/_internal/error/404");
 	}	
 	/**
 	 * Launches an application controller. Returns what the controller returns.

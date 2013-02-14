@@ -25,7 +25,7 @@ class SystemLauncher extends ApplicationLauncher
 		{
 			//not found!
 			if (! headers_sent ()) # no output done, this check prevents controllers that don't return true to fail
-				jf::import ( "view/_internal/error/404");
+				jf::run ( "view/_internal/error/404");
 			return false;
 		}
 		return true;

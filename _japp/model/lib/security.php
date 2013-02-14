@@ -6,7 +6,7 @@ class SecurityManager extends Model
 	function LoadRbac($RbacModule)
 	{
 		try {
-			jf::import($RbacModule);
+			jf::run($RbacModule);
 		}
 		catch (ImportException $e)
 		{

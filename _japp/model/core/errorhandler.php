@@ -98,7 +98,7 @@ class ErrorHandler
 	{
 		if (!self::$PresentErrors)
 			return false;
-		jf::import("jf/view/_internal/error",array(
+		jf::run("jf/view/_internal/error",array(
 		"errno"=>$errno,
 		"errstr"=>$errstr,
 		"errfile"=>$errfile,

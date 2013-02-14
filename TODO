@@ -3,7 +3,7 @@
 #FIXME: rename jFramework in loader to jframework
 #FIXME: sessions are somewhat buggy, fix them
 #TODO: add transition scripts based on versions
-
+#TODO: allow multiple runs in a single process
 
 __DONE__
 1078 #FIXME: add index page to all requests with /"" at end of them

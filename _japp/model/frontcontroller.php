@@ -124,10 +124,10 @@ class BaseFrontController
 				$Parts[count($Parts)-1]=self::$IndexPage;
 		$Request=implode("/",$Parts);
 		
-		jf::import("config/plugins/pre"); //pre hook
+		jf::run("config/plugins/pre"); //pre hook
 		$r=$this->_Run($Request);
-		jf::import("config/plugins/post"); //pre hook
-		return $r;
+		jf::run("config/plugins/post"); //pre hook
+		return $r->Result();
 	}
 	
 	private function _Run($Request)

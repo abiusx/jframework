@@ -11,7 +11,7 @@ class ApplicationLauncher extends BaseLauncher
 	function  __construct($Request)
 	{
 		$this->Request=$Request;
-		$this->Launch();
+		$this->Result=$this->Launch();
 	}	
 	/**
 	 * Return a list of classes found in a module
@@ -164,7 +164,7 @@ class ApplicationLauncher extends BaseLauncher
 		{
 			//not found!
 			if (! headers_sent ()) # no output done, this check prevents controllers that don't return true to fail
-				jf::import ( "view/_internal/error/404");
+				jf::run ( "view/_internal/error/404");
 			return false;
 		}
 		return true;
