@@ -103,9 +103,13 @@ class Jalali extends JPlugin
 		$arr=self::JalaliToGregorian($Year, $Month, $Day);
 		$DateTimestamp=strtotime(implode("-",$arr));
 		#FIXME:
+		$TimeDef=0;
+		if ($Hour!=0)
+			$TimeDef=77400+1800;
+		if ($Minute!=0)
+			$TimeDef=77400;
 		$TimeTimestamp=$Hour*3600+$Minute*60+$Second;
-// 		$TimeTimestamp-=self::TimeDifference();
-		return $DateTimestamp+$TimeTimestamp;
+		return $DateTimestamp+$TimeTimestamp+$TimeDef;
 	}
 	
 	private $Timestamp;
