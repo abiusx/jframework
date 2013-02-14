@@ -71,4 +71,13 @@ class LibSessionTest extends JDbTest
 		$this->assertNotEquals(jf::$Session->SessionID(), $oldSession);
 		$this->assertEmpty($_SESSION);
 	}
+	
+	function testStressRoll()
+	{
+		jf::$Session->Refresh();
+		for ($i=0;$i<100;++$i)
+		{
+			$this->assertTrue(jf::$Session->RollSession());
+		}
+	}
 }

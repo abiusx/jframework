@@ -17,7 +17,8 @@ class HttpRequest
 	{
 		if (jf::$RunMode==\RunModes::CLI)
 			return "127.0.0.1";
-		return (getenv ( "HTTP_X_FORWARDED_FOR" )) ? getenv ( "HTTP_X_FORWARDED_FOR" ) : getenv ( "REMOTE_ADDR" );
+// 		return (getenv ( "HTTP_X_FORWARDED_FOR" )) ? getenv ( "HTTP_X_FORWARDED_FOR" ) : getenv ( "REMOTE_ADDR" );
+		return $_SERVER['REMOTE_ADDR'];
 	}
 	/**
 	 * Returns the current URL of the browser
@@ -32,7 +33,15 @@ class HttpRequest
 			return (self::Protocol()."://".self::ServerName().self::PortReadable().self::RequestURI()."?".self::QueryString());
 		else
 			return (self::Protocol()."://".self::ServerName().self::PortReadable().self::RequestURI());
-	}			
+	}	
+	/**
+	 * Returns the client User Agent
+	 * @return string
+	 */	
+	static function UserAgent()
+	{
+		return $_SERVER['HTTP_USER_AGENT'];
+	}	
 	/**
 	 * Port of client connection
 	 *

@@ -237,11 +237,13 @@ class UserManager extends Model
 		if (! $this->IsLoggedIn($UserID))
 		{
 			$r=jf::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID, jf::$Session->SessionID(), jf::time (), jf::time (), 1, jf::$Session->SessionID());
+			if ($r>0) jf::$Session->SetCurrentUser($UserID);
 			return $r>0;
 		}
 		else
 		{
 			$r=jf::SQL( "UPDATE {$this->TablePrefix()}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE UserID=?", $UserID, jf::$Session->SessionID(), jf::time (), jf::time (), 1, $UserID);
+			if ($r>0) jf::$Session->SetCurrentUser($UserID);
 			return $r>0;
 		}
 	}
@@ -257,7 +259,6 @@ class UserManager extends Model
 		if (!$Result) return false;
 		$UserID=$this->UserID($Username);
 		$res=$this->ForceLogin($UserID);
-		if ($res) jf::$Session->SetCurrentUser($UserID);
 		return $res;
 	}
 

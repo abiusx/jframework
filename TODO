@@ -1,3 +1,9 @@
 #FIXME: Http::Root() only returns valid when Request is set via .htaccess, not in embed mode
 #TODO: add embed.php to root of jframework for embedded mode
 #FIXME: rename jFramework in loader to jframework
+#FIXME: sessions are somewhat buggy, fix them
+#TODO: add transition scripts based on versions
+
+
+__DONE__
+1078 #FIXME: add index page to all requests with /"" at end of them

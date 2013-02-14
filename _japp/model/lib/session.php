@@ -117,7 +117,7 @@ class SessionManager extends Model
 	
 	/**
 	 * 
-	 * changes sessionID both in cookie and database
+	 * changes sessionID both in cookie and database, without destroying the session
 	 */
 	function RollSession()
 	{

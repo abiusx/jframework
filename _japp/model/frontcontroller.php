@@ -86,7 +86,7 @@ class BaseFrontController
 	static $IndexPage="main"; //default page
 	/**
 	 * Initializes the framework
-	 * @param string $Request used to understand the environment. You can re-apply this value to run.
+	 * @param string $Request used to understand the environment. You can re-apply this value to run, but this here should be your URL.
 	 *
 	 */
 	public function Init($Request)
@@ -107,8 +107,7 @@ class BaseFrontController
 	
 	/**
 	 * After loading jFramework and libraries, use this function to run a request type
-	 * @param $Request
-	 * @param $RequestType
+	 * @param $Request the url request that is supposed to get run
 	 */
 	public function Run($Request = null)
 	{
@@ -119,24 +118,36 @@ class BaseFrontController
 		}
 		if ($Request === null)
 			$Request = jf::$Request;
-		jf::$Request=$Request;
+		//fixing request by adding index page
+		$Parts=explode("/",$Request);
+		if ($Parts[count($Parts)-1]=="")
+				$Parts[count($Parts)-1]=self::$IndexPage;
+		$Request=implode("/",$Parts);
+		
+		jf::import("config/plugins/pre"); //pre hook
+		$r=$this->_Run($Request);
+		jf::import("config/plugins/post"); //pre hook
+		return $r;
+	}
+	
+	private function _Run($Request)
+	{
 		$Parts=explode("/",$Request);
 		$Type=array_shift($Parts);
-
+// 		die(print_($Parts));
 		$isFile = array_key_exists ( $Type, FileLauncher::$StaticContentPrefix );
-		if ($Type == "app") 
+		if ($Type == "app")
 			return new ApplicationLauncher( $Request );
-		elseif ($isFile) 
-			return new FileLauncher($Request);
-		elseif ($Type == "service") 
-			return new ServiceLauncher($Request);
-		elseif ($Type == "sys") 
-			return new SystemLauncher($Request);
-		elseif ($Type == "test") 
-			return new TestLauncher( $Request );
+		elseif ($isFile)
+		return new FileLauncher($Request);
+		elseif ($Type == "service")
+		return new ServiceLauncher($Request);
+		elseif ($Type == "sys")
+		return new SystemLauncher($Request);
+		elseif ($Type == "test")
+		return new TestLauncher( $Request );
 		else //if jFramework receives an unknown type of request, it assumes application type
 		{
-			if (!$Request) $Request=self::$IndexPage;
 			$Request = "app/" . $Request;
 			return new ApplicationLauncher ($Request);
 		}
