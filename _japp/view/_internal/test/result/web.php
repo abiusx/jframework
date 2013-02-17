@@ -39,14 +39,25 @@ function DumpResultRows($ResultArray,$BackgroundColor,$Color,$Text,$Odd=false)
 			}
 			else
 			{
-				$file=$trace[3]['file'];
-				$line=$trace[3]['line'];
+				if (isset($trace[3]['file']))
+				{
+					$file=$trace[3]['file'];
+					$line=$trace[3]['line'];
+				}
+				else
+					$file=$line=null;
 			}
-			$dir=substr($file, 0,strlen(jf::root()));
-			$dir=substr($file,0,strpos($file,DIRECTORY_SEPARATOR,strlen($dir)+1));
-			$dir=substr($file,0,strpos($file,DIRECTORY_SEPARATOR,strlen($dir)+1));
-			$filename=substr($file,strlen($dir)+1);
-			echo $dir."/<strong>{$filename}</strong> :{$line}";
+			if ($file!==null)
+			{
+				$dir=substr($file, 0,strlen(jf::root()));
+				$dir=substr($file,0,strpos($file,DIRECTORY_SEPARATOR,strlen($dir)+1));
+				$dir=substr($file,0,strpos($file,DIRECTORY_SEPARATOR,strlen($dir)+1));
+				$filename=substr($file,strlen($dir)+1);
+				echo $dir."/<strong>{$filename}</strong> :{$line}";
+			}
+			else
+				echo "File: Could not determine, probably because of fatal error.";
+			
 			echo "</td>";
 			echo "</tr>";
 		}
