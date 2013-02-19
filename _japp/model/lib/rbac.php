@@ -1,773 +1,751 @@
 <?php
 /*
- * 
- Role Based Access Control
-	Implemented on NIST RBAC Standard Model
- 		level 2. Hierarchical RBAC (Restricted Hierarchical RBAC : only trees of roles)
-	by AbiusX[at]Gmail[dot]com
-
-	Restricted Hierarchies for both Permissions and Roles.
-	Multiple roles for each user
-*/
+ * Role Based Access Control Implemented on NIST RBAC Standard Model level 2.
+ * Hierarchical RBAC (Restricted Hierarchical RBAC : only trees of roles) by
+ * AbiusX Features: Restricted Hierarchies for both Permissions and Roles.
+ * Multiple roles for each user Optimized queries
+ */
 
 
 /**
  * Role Based Access Control class.
- * defines, manages and implements user/role/permission relations, and role based access control. 
+ * defines, manages and implements user/role/permission relations, and role
+ * based access control.
  * NIST RBAC Standard Model 2 (Hierarchical RBAC, trees of roles)
- * @verson 0.60
+ * @verson .9
  */
 namespace jf;
-class RBACManager extends Model 
-		implements RBAC_Management ,RBAC_PermissionManagement,RBAC_RoleManagement,RBAC_UserManagement   
+
+abstract class BaseRBAC extends Model
 {
-    /**
-     * Permissions Nested Set
-     *
-     * @var FullNestedSet
-     */
-    public $Permissions;
-    /**
-     * Roles Nested Set
-     *
-     * @var FullNestedSet
-     */
-    protected $Roles=null;
-
-    protected $TablePrefix;
-    function __construct()
-    {
-
-    	$this->Permissions=new FullNestedSet($this->TablePrefix()."rbac_permissions","ID",
-            "Left","Right");
-        $this->Roles=new FullNestedSet($this->TablePrefix()."rbac_roles","ID",
-            "Left","Right");
-    }
-    
-	###############################
-	####### Roles Interface #######
-	###############################
-    /**
-     * Determines if the input role is a role ID or a role title
-     *
-     * @param Role $Role ID or Title
-     * @return String Fieldname in database that's appropriate
-     */
-    private function RoleField($Role)
+	function RootID()
 	{
-	    if (is_numeric($Role))
-	        return "ID";
-	    else 
-	        return "Title";
-	}
-	/**
-	 * This returns the condition used to determine role for use in nested set 
-	 * 
-	 *
-	 * @param String $Role RoleID or  RoleTitle
-	 */
-	private function RoleCondition($Role)
-	{
-	    return $this->RoleField($Role)."=?";
-	}
-	/**
-    Role Title to Role ID
-    Returns ID of a RBAC Role from its Title
-    @param String $RoleTitle Title of the RBAC Role
-    @return ID String, Null on failure
-    @see Role_Info()
-    */
-	function Role_ID($RoleTitle)
-	{
-        return $this->Roles->GetID("Title"."=?",$RoleTitle);
+		return 1;
 	}
 	
 	/**
-    Role Information
-    Returns ID, ParentID, Title and Description of a RBAC Role from its ID
-    @param Role $Role ID or Title of the role
-    @return Array 
-    @see Role_ID()
-    */
-	function Role_Info($Role)
+	 * Return type of current instance, e.g roles, permissions
+	 *
+	 * @return string
+	 */
+	abstract protected function Type();
+	/**
+	 * Adds a new role or permission
+	 * Returns new entry's ID
+	 *
+	 * @param string $Title
+	 *        	Title of the new entry
+	 * @param integer $Description
+	 *        	Description of the new entry
+	 * @param integer $ParentID
+	 *        	optional ID of the parent node in the hierarchy
+	 * @return integer ID of the new entry
+	 */
+	function Add($Title, $Description, $ParentID = null)
 	{
-		return $this->Roles->GetRecord($this->RoleCondition($Role),$Role);
+		if ($ParentID === null)
+			$ParentID = $this->RootID ();
+		return $this->{$this->Type ()}->InsertChildData ( array ("Title" => $Title, "Description" => $Description ), "ID=?", $ParentID );
+	}
+	/**
+	 * Return count of the entity
+	 *
+	 * @return integer
+	 */
+	function Count()
+	{
+		$Res = jf::SQL ( "SELECT COUNT(*) FROM {$this->TablePrefix()}rbac_{$this->Type()}" );
+		return $Res [0] ['COUNT(*)'];
 	}
 	
 	/**
-    Adds a new Role
-    Returns new role's ID
-    @param String $RoleTitle Title of the new role
-    @param String $RoleDescription Description of the new role
-    @param Role $RoleParent ID or title of the parent node in the roles hierarchy
-    @return ID of the new role
-    */
-	function Role_Add($RoleTitle,$RoleDescription,$RoleParent=0)
-	{
-		return $this->Roles->InsertChildData(
-    		array("Title"=>$RoleTitle
-    		,"Description"=>$RoleDescription)
-    		,$this->RoleCondition($RoleParent),$RoleParent
-		);
-	}
-	/**
-    Removes a role and all its assignments
-	@param String $Role ID or Title of a role
-	@param Boolean $Recursive to remove children as well or not
-    @see Role_ID()
-    */
-	function Role_Remove($Role,$Recursive=false)
-	{
-	    $this->UnassignRolePermissions($Role);
-	    $this->UnassignRoleUsers($Role);
-        if (!$Recursive)
-         $this->Roles->DeleteConditional($this->RoleCondition($Role),$Role);
-        else
-            $this->Roles->DeleteSubtreeConditional($this->RoleCondition($Role),$Role);
-	}
-	
-	/**
-	 * Edits a role title and permission (not position)
+	 * Returns ID of a path
 	 *
-	 * @param String $Role ID or Title of node
-	 * @param String $RoleTitle new title
-	 * @param String $RoleDescription new description
+	 * @todo this has a limit of 1000 characters on $Path
+	 * @param string $Path
+	 *        	such as /role1/role2/role3 ( a single slash is root)
+	 * @return integer NULL
 	 */
-	function Role_Edit($Role,$RoleTitle=null,$RoleDescription=null)
+	function PathID($Path)
 	{
-        return $this->Roles->EditData(array("Title"=>$RoleTitle
-    		,"Description"=>$RoleDescription)
-    		,$this->RoleCondition($Role),$Role);
-	}
-	/**
-	 * Returns all direct children of a role
-	 *
-	 * @param String $Role ID or Title of role
-	 * @return Array Children
-	 */
-	function Role_Children($Role=0)
-	{
-	    return $this->Roles->ChildrenConditional($this->RoleCondition($Role),$Role);
-	}
-	/**
-	 * Returns all level descendants of a role
-	 *
-	 * @param String $Role ID or Title of role
-	 * @return Array of Descendants (with Depth field)
-	 */
-	function Role_Descendants($Role=0)
-	{
-	    return $this->Roles->DescendantsConditional(false,$this->RoleCondition($Role),$Role);
-	}
-
-	/**
-	 * Returns all roles in a Depth sorted manner
-	 * includes the Depth field in each role
-	 *
-	 * @return Array Roles
-	 */
-	function Role_All()
-	{
-	    return $this->Roles->FullTree();
-	}
-	
-	function Role_Reset($Ensure=false)
-	{
-		if ($Ensure!==true) 
+		$Path = "root" . $Path;
+		if ($Path [strlen ( $Path ) - 1] == "/")
+			$Path = substr ( $Path, 0, strlen ( $Path ) - 1 );
+		$Parts = explode ( "/", $Path );
+		$res = jf::SQL ( "SELECT node.ID,GROUP_CONCAT(parent.Title ORDER BY parent.Lft SEPARATOR '/' ) AS Path
+		FROM {$this->TablePrefix()}rbac_{$this->Type()} AS node,
+		{$this->TablePrefix()}rbac_{$this->Type()} AS parent
+		WHERE node.Lft BETWEEN parent.Lft AND parent.Rght
+		AND  node.Title=?
+				GROUP BY node.ID
+				HAVING Path = ?
+				ORDER BY parent.Lft
+		", $Parts [count ( $Parts ) - 1], $Path );
+		if ($res)
+			return $res [0] ['ID'];
+		else
+			return null;
+			// TODO: make the below SQL work, so that 1024 limit is over
+		
+		$QueryBase = ("SELECT n0.ID  \nFROM {$this->TablePrefix()}rbac_{$this->Type()} AS n0");
+		$QueryCondition = "\nWHERE 	n0.Title=?";
+		
+		for($i = 1; $i < count ( $Parts ); ++ $i)
 		{
-			trigger_error("Make sure you want to reset all roles first!");
+			$j = $i - 1;
+			$QueryBase .= "\nJOIN 		{$this->TablePrefix()}rbac_{$this->Type()} AS n{$i} ON (n{$j}.Lft BETWEEN n{$i}.Lft+1 AND n{$i}.Rght)";
+			$QueryCondition .= "\nAND 	n{$i}.Title=?";
+			// Forcing middle elements
+			$QueryBase .= "\nLEFT JOIN 	{$this->TablePrefix()}rbac_{$this->Type()} AS nn{$i} ON (nn{$i}.Lft BETWEEN n{$i}.Lft+1 AND n{$j}.Lft-1)";
+			$QueryCondition .= "\nAND 	nn{$i}.Lft IS NULL";
+		}
+		$Query = $QueryBase . $QueryCondition;
+		$PartsRev = array_reverse ( $Parts );
+		array_unshift ( $PartsRev, $Query );
+		
+		print_ ( $PartsRev );
+		$res = call_user_func_array ( "jf::SQL", $PartsRev );
+		if ($res)
+			return $res [0] ['ID'];
+		else
+			return null;
+	}
+	
+	/**
+	 * Returns ID belonging to a title, and the first one on that
+	 *
+	 * @param unknown_type $Title        	
+	 */
+	function TitleID($Title)
+	{
+		return $this->{$this->Type ()}->GetID ( "Title=?", $Title );
+	}
+	/**
+	 * Return the whole record of a single entry (including Rght and Lft fields)
+	 *
+	 * @param integer $ID        	
+	 */
+	protected function GetRecord($ID)
+	{
+		$args = func_get_args ();
+		return call_user_func_array ( array ($this->{$this->Type ()}, "GetRecord" ), $args );
+	}
+	/**
+	 * Returns title of entity
+	 *
+	 * @param integer $ID        	
+	 * @return string NULL
+	 */
+	function GetTitle($ID)
+	{
+		$r = $this->GetRecord ( "ID=?", $ID );
+		if ($r)
+			return $r ['Title'];
+		else
+			return null;
+	}
+	/**
+	 * Return description of entity
+	 *
+	 * @param integer $ID        	
+	 * @return string NULL
+	 */
+	function GetDescription($ID)
+	{
+		$r = $this->GetRecord ( "ID=?", $ID );
+		if ($r)
+			return $r ['Description'];
+		else
+			return null;
+	}
+	/**
+	 * Adds a path and all its components.
+	 * Will not replace or create siblings if a component exists.
+	 *
+	 * @param string $Path
+	 *        	such as /some/role/some/where
+	 * @param array $Descriptions
+	 *        	array of descriptions (will add with empty description if not
+	 *        	avialable)
+	 * @return integer NULL components ID
+	 */
+	function AddPath($Path, array $Descriptions = null)
+	{
+		assert ( $Path [0] == "/" );
+		
+		$Path = substr ( $Path, 1 );
+		$Parts = explode ( "/", $Path );
+		$Parent = 1;
+		$index = 0;
+		$CurrentPath = "";
+		foreach ( $Parts as $p )
+		{
+			if (isset ( $Descriptions [$index] ))
+				$Description = $Descriptions [$index];
+			else
+				$Description = "";
+			$CurrentPath .= "/{$p}";
+			$t = $this->PathID ( $CurrentPath );
+			if (! $t)
+			{
+				$IID = $this->Add ( $p, $Description, $Parent );
+				$Parent = $IID;
+			}
+			else
+			{
+				$Parent = $t;
+			}
+		}
+		return $Parent;
+	}
+	
+	/**
+	 * Edits an entity, changing title and/or description
+	 *
+	 * @param integer $ID        	
+	 * @param string $NewTitle        	
+	 * @param string $NewDescription        	
+	 */
+	function Edit($ID, $NewTitle = null, $NewDescription = null)
+	{
+		$Data = array ();
+		if ($NewTitle !== null)
+			$Data ['Title'] = $NewTitle;
+		if ($NewDescription !== null)
+			$Data ['Description'] = $NewDescription;
+		return $this->{$this->Type ()}->EditData ( $Data, "ID=?", $ID ) == 1;
+	}
+	
+	/**
+	 * Returns children of an entity
+	 *
+	 * @return array
+	 */
+	function Children($ID)
+	{
+		return $this->{$this->Type ()}->ChildrenConditional ( "ID=?", $ID );
+	}
+	
+	/**
+	 * Returns descendants of a node, with their depths in integer
+	 *
+	 * @param integer $ID        	
+	 * @return array with keys as titles and Title,ID, Depth and Description
+	 */
+	function Descendants($ID)
+	{
+		$res = $this->{$this->Type ()}->DescendantsConditional(/* absolute depths*/false, "ID=?", $ID );
+		$out = array ();
+		if (is_array ( $res ))
+			foreach ( $res as $v )
+				$out [$v ['Title']] = $v;
+		return $out;
+	}
+	
+	/**
+	 * Return depth of a node
+	 *
+	 * @param integer $ID        	
+	 */
+	function Depth($ID)
+	{
+		return $this->{$this->Type ()}->DepthConditional ( "ID=?", $ID );
+	}
+	
+	/**
+	 * Returns path of a node
+	 *
+	 * @param integer $ID        	
+	 * @return string path
+	 */
+	function Path($ID)
+	{
+		$res = $this->{$this->Type ()}->PathConditional ( "ID=?", $ID );
+		$out = null;
+		if (is_array ( $res ))
+			foreach ( $res as $r )
+				if ($r ['ID'] == 1)
+					$out = '/';
+				else
+					$out .= "/" . $r ['Title'];
+		if (strlen ( $out ) > 1)
+			return substr ( $out, 1 );
+		else
+			return $out;
+	}
+	
+	/**
+	 * Returns parent of a node
+	 *
+	 * @param integer $ID        	
+	 * @return array including Title, Description and ID
+	 */
+	function ParentNode($ID)
+	{
+		return $this->{$this->Type ()}->ParentNodeConditional ( "ID=?", $ID );
+	}
+	
+	/**
+	 * Reset the table back to its initial state
+	 * Keep in mind that this will not touch relations
+	 *
+	 * @param boolean $Ensure
+	 *        	must be true to work, otherwise error
+	 * @throws \Exception
+	 * @return integer number of deleted entries
+	 */
+	function Reset($Ensure = false)
+	{
+		if ($Ensure !== true)
+		{
+			throw new \Exception ( "You must pass true to this function, otherwise it won't work." );
 			return;
 		}
-        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_roles");	    
-        $this->Role_Add("root","root");
-        j::SQL("UPDATE {$this->TablePrefix()}rbac_roles SET ID = '0'");
-        $Adapter=DatabaseManager::Configuration()->Adapter;
-        if ($Adapter=="mysqli" or $Adapter=="pdo_mysql") 
-        	j::SQL("ALTER TABLE {$this->TablePrefix()}rbac_roles AUTO_INCREMENT =1 ");
-       	elseif ($Adapter=="pdo_sqlite")
-        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix()."rbac_roles");
-        else
-			trigger_error("RBAC can not reset table on this type of database: {$Adapter}");
-        
-	}
-	###############################
-	#### Permissions Interface ####
-	###############################
-    /**
-     * Determines if the input permission is a permission ID or a permission title
-     * then returns the appropriate field name in database to set the condition
-     *
-     * @param String $Permission ID or Title
-     * @return String Fieldname in database that's appropriate
-     */
-    private function PermissionField($Permission)
-	{
-	    if (is_numeric($Permission))
-	        return "ID";
-	    else 
-	        return "Title";
-	}
-	/**
-	 * This returns the condition used to determine permission for use in nested set 
-	 *
-	 * @param String $Permission ID or  Title
-	 */
-	private function PermissionCondition($Permission)
-	{
-	    return $this->PermissionField($Permission)."=?";
-	}
-	/**
-    Permission Title to Permission ID
-    Returns ID of a RBAC Permission from its Title
-    @param String $PermissionTitle Title of the RBAC Permission
-    @return ID String, Null on failure
-    @see Permission_Info()
-    */
-	function Permission_ID($PermissionTitle)
-	{
-        return $this->Permissions->GetID($this->PermissionCondition($PermissionTitle),$PermissionTitle);
-	 }
-	
-	/**
-    Permission Information
-    Returns ID, Title and Description of a RBAC Permission from its ID (and Depth)
-    @param String $Permission ID or Title of the RBAC Permission
-    @return Array with 4 elements
-    @see Permission_ID()
-    */
-	function Permission_Info($Permission)
-	{
-		return $this->Permissions->GetRecord($this->PermissionCondition($Permission),$Permission);
-    }
-	
-	/**
-    Adds a new Permission
-    Returns new Permission's ID
-    @param String $PermissionTitle Title of the new Permission
-    @param String $PermissionDescription Description of the new Permission
-    @param String $PermissionParent ID or Title of the parent node in the Permissions hierarchy
-    @return ID of the new Permission
-    @see Permission_ID()
-    */
-	function Permission_Add($PermissionTitle,$PermissionDescription,$PermissionParent=0)
-	{
-		return $this->Permissions->InsertChildData(
-    		array("Title"=>$PermissionTitle
-    		,"Description"=>$PermissionDescription)
-    		,$this->PermissionCondition($PermissionParent),$PermissionParent
-		);
-    }
-    /**
-    Removes a permission and all its assignments
-	@param String $Permission ID or Title of a Permission
-	@param Boolean $Recursive to remove descendants as well or not
-    @see Permission_ID()
-    */
-	function Permission_Remove($Permission,$Recursive=false)
-	{
-        $this->UnassignPermissionRoles($Permission);
-	    if (!$Recursive)
-         $this->Permissions->DeleteConditional($this->PermissionCondition($Permission),$Permission);
-        else
-            $this->Permissions->DeleteSubtreeConditional($this->PermissionCondition($Permission),$Permission);
-	}
-	/**
-	 * Edits a Permission title and permission (not position)
-	 *
-	 * @param String $Permission ID or Title of node
-	 * @param String $PermissionTitle new title
-	 * @param String $PermissionDescription new description
-	 */
-	function Permission_Edit($Permission,$PermissionTitle=null,$PermissionDescription=null)
-	{
-        return $this->Permissions->EditData(array("Title"=>$PermissionTitle
-    		,"Description"=>$PermissionDescription)
-    		,$this->PermissionCondition($Permission),$Permission);
-	}
-	/**
-	 * Returns all direct children of a Permission
-	 *
-	 * @param String $Permission ID or Title of Permission
-	 * @return Array Children
-	 */
-	function Permission_Children($Permission=0)
-	{
-	    return $this->Permissions->ChildrenConditional($this->PermissionCondition($Permission),$Permission);
-	}
-	/**
-	 * Returns all level descendants of a Permission
-	 *
-	 * @param String $Permission ID or Title of Permission
-	 * @return Array of Descendants (with Depth field)
-	 */
-	function Permission_Descendants($Permission=0)
-	{
-	    return $this->Permissions->DescendantsConditional(false,$this->PermissionCondition($Permission),$Permission);
-	}
-	/**
-	 * Returns all Permissions in a Depth sorted manner
-	 * includes the Depth field in each Permission
-	 *
-	 * @return Array Permissions
-	 */
-	function Permission_All()
-	{
-	    return $this->Permissions->FullTree();
+		$res = jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_{$this->Type()}" );
+		$Adapter = DatabaseManager::Configuration ()->Adapter;
+		if ($Adapter == "mysqli" or $Adapter == "pdo_mysql")
+			jf::SQL ( "ALTER TABLE {$this->TablePrefix()}rbac_{$this->Type()} AUTO_INCREMENT=1 " );
+		elseif ($Adapter == "pdo_sqlite")
+			jf::SQL ( "delete from sqlite_sequence where name=? ", $this->TablePrefix () . "rbac_{$this->Type()}" );
+		else
+			throw new \Exception ( "RBAC can not reset table on this type of database: {$Adapter}" );
+		$iid = jf::SQL ( "INSERT INTO {$this->TablePrefix()}rbac_{$this->Type()} (Title,Description) VALUES (?,?)", "root", "root" );
+		return $res;
 	}
 	
-	function Permission_Reset($Ensure=false)
-	{
-		if ($Ensure!==true) 
-		{
-			trigger_error("Make sure you want to reset all permissions first!");
-			return;
-		}
-		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_permissions");	    
-        $this->Permission_Add("root","root");
-        j::SQL("UPDATE {$this->TablePrefix()}rbac_permissions SET ID = '0'");
-        $Adapter=DatabaseManager::Configuration()->Adapter;
-        if ($Adapter=="mysqli" or $Adapter=="pdo_mysql") 
-        	j::SQL("ALTER TABLE {$this->TablePrefix()}rbac_permissions AUTO_INCREMENT =1 ");
-       	elseif ($Adapter=="pdo_sqlite")
-        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix()."rbac_permissions");
-        else
-			trigger_error("RBAC can not reset table on this type of database: {$Adapter}");
-        
-	}
 	
-	##############################
-	######### User-Roles #########
-	##############################
-	
-	/**
-	 * Assigns a role to a user
-	 *
-	 * @param String $Role Title or ID
-	 * @param String $UserID optional, UserID or the current user would be used (use 0 for guest)
-	 * @param Boolean $Replace to replace the assignment if existing (only updates date)
-	 */
-	function User_AssignRole($Role,$UserID=null,$Replace=false)
-	{
-	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if ($UserID===null) $UserID=jf::CurrentUser();
-        $Query=$Replace?"REPLACE":"INSERT INTO";
-        j::SQL("{$Query} {$this->TablePrefix()}rbac_userroles 
-        (UserID,RoleID,AssignmentDate)
-        VALUES (?,?,?)
-        ",$UserID,$Role,jf::time());
-	}
-	/**
-	 * Unassigns a role to a user
-	 *
-	 * @param String $Role Title or ID
-	 * @param String $UserID optional, UserID or the current user would be used (use 0 for guest)
-	 */
-	function User_UnassignRole($Role,$UserID=null)
-	{
-	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if ($UserID===null) $UserID=jf::CurrentUser();
-        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_userroles 
-		WHERE UserID=? AND RoleID=?"
-        ,$UserID,$Role);
-	}
-	
-	/**
-	 * Returns all Role-User relations as a 2D array of arrays with following fields:
-	 * UserID, Username, AssignmentDate, RoleID, RoleTitle, RoleDescription
-	 * @param Boolean $OnlyIDs if this is set to true, only a 2D array of RoleID-UserID is returned (the actual DB table)
-	 * @param Integer $Offset to start the results from
-	 * @param Integer $Limit to limit number of results
-	 * @return Array 2D
-	 */
-	function User_AllAssignments($OnlyIDs=true,$SortBy=null,$Offset=null,$Limit=null)
-	{
-	    if ($Limit)
-	        $Limit=" LIMIT {$Offset},{$Limit}";
-	    else 
-	        $Limit="";
-	    if ($SortBy)
-	        $SortBy=" ORDER BY {$SortBy}";
-	    else 
-	        $SortBy="";    
-	    if ($OnlyIDs)
-	        return j::SQL("SELECT * FROM {$this->TablePrefix()}rbac_userroles{$Limit}");
-	    else  
-	        return j::SQL("SELECT TRel.AssignmentDate AS AssignmentDate,
-	        TU.ID AS UserID,TU.Username
-	        AS Username,TR.ID AS RoleID , TR.Title
-	         AS RoleTitle,TR.Description AS RoleDescription 
-	        FROM 
-			{$this->TablePrefix()}rbac_userroles AS `TRel` 
-			JOIN {$this->TablePrefix()}.users AS `TU` ON 
-			(`TRel`.UserID=TU.ID)
-			JOIN {$this->TablePrefix()}rbac_roles AS `TR` ON 
-			(`TRel`.RoleID=`TR`.ID)
-	        {$SortBy}{$Limit}"
-	        );
-	}
-	function User_AllAssignmentsCount()
-	{
-        $Res=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}rbac_userroles");
-        return $Res[0]['Result'];
-	}	
-	
-	##############################
-	###### Role-Permission #######
-	##############################
 	/**
 	 * Assigns a role to a permission (or vice-versa)
 	 *
-	 * @param String $Role Title or ID
-	 * @param String $Permission Title or ID
-	 * @param Boolean $Replace to replace if existing (would only update AssignmentDate)
+	 * @param integer $Role
+	 * @param integer $Permission
+	 * @return boolean inserted or existing
 	 */
-	function Assign($Role,$Permission,$Replace=false)
+	function Assign($Role, $Permission)
 	{
-	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if (!is_numeric($Permission)) $Permission=$this->Permission_ID($Permission);
-	    if ($Replace) $Query="REPLACE";
-	    else $Query="INSERT INTO";
-	    
-	    
-	    j::SQL("{$Query} {$this->TablePrefix()}rbac_rolepermissions 
-	    (RoleID,PermissionID,AssignmentDate)
-	    VALUES (?,?,?)",$Role,$Permission,jf::time());
+		return jf::SQL ( "INSERT INTO {$this->TablePrefix()}rbac_rolepermissions
+			(RoleID,PermissionID,AssignmentDate)
+			VALUES (?,?,?)", $Role, $Permission, jf::time () ) > 1;
 	}
 	/**
 	 * Unassigns a role-permission relation
-	 *
-	 * @param String $Role Title or ID
-	 * @param String $Permission Title or ID
+	 * @param integer $Role
+	 * @param integer $Permission
+	 * @return number of deleted relations
 	 */
-	function Unassign($Role,$Permission)
+	function Unassign($Role, $Permission)
 	{
-	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if (!is_numeric($Permission)) $Permission=$this->Permission_ID($Permission);
-        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE 
-        RoleID=? AND PermissionID=?",$Role,$Permission );
+		return jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE
+				RoleID=? AND PermissionID=?", $Role, $Permission );
 	}
 	
-	function UnassignRolePermissions ($Role)
+	/**
+	 * Remove all role-permission relations
+	 * mostly used for testing
+	 * @param boolean $Ensure must set or throws error
+	 * @return number of deleted relations
+	 */
+	function ResetAssignments($Ensure = false)
 	{
-		if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE 
-        RoleID=? ",$Role);
-	}
-	function UnassignPermissionRoles ($Permission)
-	{
-	    if (!is_numeric($Permission)) $Permission=$this->Permission_ID($Permission);
-        j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE 
-        PermissionID=?",$Permission );
-	}
-	function UnassignRoleUsers($Role)
-	{
-		if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_userroles WHERE 
-        RoleID=?",$Role);
-	}
-	function Assignment_Reset($Ensure=false)
-	{
-		if ($Ensure!==true) 
+		if ($Ensure !== true)
 		{
-			trigger_error("Make sure you want to reset all assignments first!");
+			throw new \Exception ( "You must pass true to this function, otherwise it won't work." );
 			return;
 		}
-		j::SQL("DELETE FROM {$this->TablePrefix()}rbac_rolepermissions");
-        $Adapter=DatabaseManager::Configuration()->Adapter;
-        if ($Adapter=="mysqli" or $Adapter=="pdo_mysql") 
-        	j::SQL("ALTER TABLE {$this->TablePrefix()}rbac_rolepermissions AUTO_INCREMENT =1 ");
-       	elseif ($Adapter=="pdo_sqlite")
-        	j::SQL("delete from sqlite_sequence where name=? ",$this->TablePrefix()."_rbac_rolepermissions");
-        else
-			trigger_error("RBAC can not reset table on this type of database: {$Adapter}");
-		$this->Assign("root","root",true);
-		return true;
-	}     
+		$res=jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_rolepermissions" );
+		
+		$Adapter = DatabaseManager::Configuration ()->Adapter;
+		if ($Adapter == "mysqli" or $Adapter == "pdo_mysql")
+			jf::SQL ( "ALTER TABLE {$this->TablePrefix()}rbac_rolepermissions AUTO_INCREMENT =1 " );
+		elseif ($Adapter == "pdo_sqlite")
+			jf::SQL ( "delete from sqlite_sequence where name=? ", $this->TablePrefix () . "_rbac_rolepermissions" );
+		else
+			throw new \Exception ( "RBAC can not reset table on this type of database: {$Adapter}" );
+		$this->Assign ( "root", "root");
+		return $res;
+	}	
+}
+class RoleManager extends BaseRBAC
+{
 	/**
-	 * Returns all permissions assigned to a role
+	 * Roles Nested Set
 	 *
-	 * @param String $Role Title or ID
-	 * @param Boolean $OnlyIDs if true, result would be a 1D array of IDs
-	 * @return Array 2D or 1D
+	 * @var FullNestedSet
 	 */
-	function RolePermissions($Role,$OnlyIDs=true)
+	protected $roles = null;
+	protected function Type()
 	{
-	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-	    if ($OnlyIDs)
-	    {
-	        $Res=j::SQL("SELECT PermissionID AS `ID` FROM
-			{$this->TablePrefix()}rbac_rolepermissions WHERE RoleID=?"
-	        ,$Role);
-	        foreach ($Res as $R)
-	            $out[]=$R['ID'];
-	        return $out;
-	    }
-	    else
-	        return j::SQL("SELECT `TP`.* FROM 
-			{$this->TablePrefix()}rbac_rolepermissions AS `TR` RIGHT JOIN {$this->TablePrefix()}rbac_permissions AS `TP` ON 
-			(`TR`.PermissionID=`TP`.ID)
-			WHERE RoleID=?"
-	        ,$Role);
+		return "roles";
 	}
-	/**
-	 * Returns all roles assigned to a permission
-	 *
-	 * @param String $Permission Title or ID
-	 * @param Boolean $OnlyIDs if true, result would be a 1D array of IDs
-	 * @return Array 2D or 1D
-	 */
-	function PermissionRoles($Permission,$OnlyIDs=true)
+	function __construct()
 	{
-	    if (!is_numeric($Permission)) $Permission=$this->Permission_ID($Permission);
-	    if ($OnlyIDs)
-	    {
-	        $Res=j::SQL("SELECT RoleID AS `ID` FROM
-			{$this->TablePrefix()}rbac_rolepermissions WHERE PermissionID=?"
-	        ,$Permission);
-	        foreach ($Res as $R)
-	            $out[]=$R['ID'];
-	        return $out;
-	    }
-	    else
-	        return j::SQL("SELECT `TP`.* FROM 
-			{$this->TablePrefix()}rbac_rolepermissions AS `TR` RIGHT JOIN {$this->TablePrefix()}rbac_roles AS `TP` ON 
-			(`TR`.RoleID=`TP`.ID)
-			WHERE PermissionID=?"
-	        ,$Permission);
-	}
-	/**
-	 * Returns all Role-Permission relations as a 2D array of arrays with following fields:
-	 * PermissionID, PermissionTitle, PermissionDescription, RoleID, RoleTitle, RoleDescription, AssignmentDate
-	 * @param Boolean $OnlyIDs if this is set to true, only a 2D array of RoleID-PermissionIDs is returned (the actual DB table)
-	 * @param Integer $Offset to start the results from
-	 * @param Integer $Limit to limit number of results
-	 * @return Array 2D
-	 */
-	function Assignments_All($OnlyIDs=true,$SortBy=null,$Offset=null,$Limit=null)
-	{
-	    if ($Limit)
-	        $Limit=" LIMIT {$Offset},{$Limit}";
-	    else 
-	        $Limit="";
-	    if ($SortBy)
-	        $SortBy=" ORDER BY {$SortBy}";
-	    else 
-	        $SortBy="";    
-	    if ($OnlyIDs)
-	        return j::SQL("SELECT * FROM {$this->TablePrefix()}rbac_rolepermissions{$Limit}");
-	    else 
-	        return j::SQL("SELECT TRel.AssignmentDate AS AssignmentDate,
-	        TP.ID AS PermissionID,TP.Title
-	        AS PermissionTitle, TP.Description AS PermissionDescription,TR.`".
-	        "ID"."` AS RoleID , TR.Title AS RoleTitle,TR.Description AS RoleDescription 
-	        FROM 
-			{$this->TablePrefix()}rbac_rolepermissions AS `TRel` 
-			JOIN {$this->TablePrefix()}rbac_permissions AS `TP` ON 
-			(`TRel`.PermissionID=`TP`.ID)
-			JOIN {$this->TablePrefix()}rbac_roles AS `TR` ON 
-			(`TRel`.RoleID=`TR`.ID)
-	        {$SortBy}{$Limit}"
-	        );
-	}
-	function Assignments_Count()
-	{
-        $Res=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}rbac_rolepermissions");
-        return $Res[0]['Result'];
+		$this->Type = "roles";
+		$this->roles = new FullNestedSet ( $this->TablePrefix () . "rbac_roles", "ID", "Lft", "Rght" );
 	}
 	
-	###############
-	### GENERAL ###
-	###############
-	private $PreparedStatement_Check=array(0=>null,1=>null);
 	/**
-	 * Checks whether a user has a permission or not.
+	 * Remove a role from system
 	 *
-	 * @param String $Permission Title or ID
-	 * @param Integer $UserID optional
-	 * @return true on success (a positive number) false on no permission (zero)
+	 * @param integer $ID
+	 *        	role id
+	 * @param boolean $Recursive
+	 *        	delete all descendants
+	 *        	
 	 */
-	function Check($Permission,$UserID=null)
+	function Remove($ID, $Recursive = false)
 	{
-		//To different prepared statements, one for Title lookup another of ID lookup of permission
-	    if (is_numeric($Permission)) 
-	    {
-	        $PermissionCondition="ID=?";
-	        $Index=0;
-	    }
-	    else 
-	    {
-	        $PermissionCondition="Title=?";
-	        $Index=1;
-	    }
-	    if ($UserID===null) $UserID=jf::CurrentUser();
-	    if (!$this->PreparedStatement_Check[$Index])
-	    {
-	    	$this->PreparedStatement_Check[$Index]=jf::db()->prepare
-    ("SELECT COUNT(*) AS Result
-    FROM /* Version 2.05 */ 
-    	{$this->TablePrefix()}users AS TU
-    JOIN {$this->TablePrefix()}rbac_userroles AS TUrel ON (TU.ID=TUrel.UserID)
-    	
-    JOIN {$this->TablePrefix()}rbac_roles AS TRdirect ON (TRdirect.ID=TUrel.RoleID) 
-    JOIN {$this->TablePrefix()}rbac_roles AS TR ON ( TR.Left BETWEEN TRdirect.Left AND TRdirect.Right)
-    /* we join direct roles with indirect roles to have all descendants of direct roles */
-    JOIN 
-    (	{$this->TablePrefix()}rbac_permissions AS TPdirect 
-    	JOIN {$this->TablePrefix()}rbac_permissions AS TP ON ( TPdirect.Left BETWEEN TP.Left AND TP.Right)
-    /* direct and indirect permissions */
-    	JOIN {$this->TablePrefix()}rbac_rolepermissions AS TRel ON (TP.ID=TRel.PermissionID)
-    /* joined with role/permissions on roles that are in relation with these permissions*/
-    ) ON ( TR.ID = TRel.RoleID)
-    WHERE 
-    	TU.ID=? 
-    AND
-	    TPdirect.{$PermissionCondition}
-	    ");
-	    }
-	    $this->PreparedStatement_Check[$Index]->execute(
-	   	$UserID
-	    ,$Permission
-	    );
-        $Res=$this->PreparedStatement_Check[$Index]->fetchAll();
-	    
-	    return $Res[0]['Result'];
+		$this->UnassignPermissions ( $ID );
+		$this->UnassignUsers ( $ID );
+		if (! $Recursive)
+			return $this->roles->DeleteConditional ( "ID=?", $ID );
+		else
+			return $this->roles->DeleteSubtreeConditional ( "ID=?", $ID );
 	}
+	/**
+	 * Unassigns all permissions belonging to a role
+	 *
+	 * @param integer $ID
+	 *        	role ID
+	 * @return integer number of assignments deleted
+	 */
+	function UnassignPermissions($ID)
+	{
+		$r = jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE
+			RoleID=? ", $ID );
+		return $r;
+	}
+	/**
+	 * Unassign all users that have a certain role
+	 *
+	 * @param integer $ID
+	 *        	role ID
+	 * @return integer number of deleted assignments
+	 */
+	function UnassignUsers($ID)
+	{
+		return jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_userroles WHERE
+			RoleID=?", $ID );
+	}
+	
+
 	/**
 	 * Checks to see if a role has a permission or not
 	 *
-	 * @param String $Role Title or ID
-	 * @param String $Permission Title or ID
-	 * @return Integer 0 on no, number of paths to permission on yes
-	 * @author AbiusX with all the SQL statements used!
+	 * @param integer $Role
+	 *        	ID
+	 * @param integer $Permission
+	 *        	ID
+	 * @return boolean
 	 */
-	function CheckRolePermission($Role,$Permission)
+	function HasPermission($Role, $Permission)
 	{
-	    if (is_numeric($Permission)) $PermissionCondition="node.ID=?";
-	    else $PermissionCondition="node.Title=?";
-	    if (is_numeric($Role)) $RoleCondition="ID=?";
-	    else $RoleCondition="Title=?";
-	    
-	    $Res=j::SQL("
-    SELECT COUNT(*) AS Result
-    FROM {$this->TablePrefix()}rbac_rolepermissions AS TRel
-    JOIN {$this->TablePrefix()}rbac_permissions AS TP ON ( TP.ID= TRel.PermissionID)
-    JOIN {$this->TablePrefix()}rbac_roles AS TR ON ( TR.ID = TRel.RoleID)
-    WHERE TR.Left BETWEEN 
-    	(SELECT Left FROM {$this->TablePrefix()}rbac_roles WHERE {$RoleCondition}) 
-    	AND 
-    	(SELECT Right FROM {$this->TablePrefix()}rbac_roles WHERE {$RoleCondition})
-/* the above section means any row that is a descendants of our role (if descendant roles have some permission, then our role has it two) */
-    AND TP.ID IN (
-                SELECT parent.ID 
-                FROM {$this->TablePrefix()}rbac_permissions AS node,
-                {$this->TablePrefix()}rbac_permissions AS parent
-                WHERE node.Left BETWEEN parent.Left AND parent.Right
-                AND ( {$PermissionCondition} )
-                ORDER BY parent.Left
-    );
-/*
-the above section returns all the parents of (the path to) our permission, so if one of our role or its descendants
- has an assignment to any of them, we're good. 
-*/
-	    "
-	    ,$Role,$Role
-	    ,$Permission
-	    );
-        return $Res[0]['Result'];
-}
-	
-	
-	function Enforce($Permission)
-	{
-	    if (!$this->Check($Permission))
-	    {
-	    	if (jf::CurrentUser())
-				jf::run("view/_internal/error/403",array("Permission"=>$Permission));
-	    	else
-				jf::run("view/_internal/error/401",array("Permission"=>$Permission));
-	    	exit();
-	    }
+		$Res = jf::SQL ( "
+				SELECT COUNT(*) AS Result
+				FROM {$this->TablePrefix()}rbac_rolepermissions AS TRel
+				JOIN {$this->TablePrefix()}rbac_permissions AS TP ON ( TP.ID= TRel.PermissionID)
+				JOIN {$this->TablePrefix()}rbac_roles AS TR ON ( TR.ID = TRel.RoleID)
+				WHERE TR.Left BETWEEN
+				(SELECT Left FROM {$this->TablePrefix()}rbac_roles WHERE ID=?)
+				AND
+			(SELECT Right FROM {$this->TablePrefix()}rbac_roles WHERE ID=?)
+			/* the above section means any row that is a descendants of our role (if descendant roles have some permission, then our role has it two) */
+			AND TP.ID IN (
+			SELECT parent.ID
+			FROM {$this->TablePrefix()}rbac_permissions AS node,
+			{$this->TablePrefix()}rbac_permissions AS parent
+			WHERE node.Left BETWEEN parent.Left AND parent.Right
+			AND ( node.ID=? )
+			ORDER BY parent.Left
+			);
+			/*
+			the above section returns all the parents of (the path to) our permission, so if one of our role or its descendants
+			has an assignment to any of them, we're good.
+			*/
+		", $Role, $Role, $Permission );
+		return $Res [0] ['Result'] >= 1;
 	}
 	/**
-	 * Checks to see whether a user has a role or not
-	 * @param 	$Role Role Title or ID
-	 * @param	$User User ID
-	 * @return	Boolean true on yes, false on no
+	 * Returns all permissions assigned to a role
+	 *
+	 * @param integer $Role
+	 *        	ID
+	 * @param boolean $OnlyIDs
+	 *        	if true, result would be a 1D array of IDs
+	 * @return Array 2D or 1D or null
 	 */
-	function UserInRole($User=null,$Role)
+	function Permissions($Role, $OnlyIDs = true)
 	{
+		if ($OnlyIDs)
+		{
+			$Res = jf::SQL ( "SELECT PermissionID AS `ID` FROM {$this->TablePrefix()}rbac_rolepermissions WHERE RoleID=?", $Role );
+			if (is_array ( $Res ))
+			{
+				$out = array ();
+				foreach ( $Res as $R )
+					$out [] = $R ['ID'];
+				return $out;
+			}
+			else
+				return null;
+		}
+		else
+			return jf::SQL ( "SELECT `TP`.* FROM {$this->TablePrefix()}rbac_rolepermissions AS `TR` 
+				RIGHT JOIN {$this->TablePrefix()}rbac_permissions AS `TP` ON (`TR`.PermissionID=`TP`.ID)
+				WHERE RoleID=?", $Role );
+	}
+}
+class PermissionManager extends BaseRBAC
+{
+	/**
+	 * Permissions Nested Set
+	 *
+	 * @var FullNestedSet
+	 */
+	protected $permissions;
+	protected function Type()
+	{
+		return "permissions";
+	}
+	function __construct()
+	{
+		$this->permissions = new FullNestedSet ( $this->TablePrefix () . "rbac_permissions", "ID", "Lft", "Rght" );
+	}
+	/**
+	 * Remove a permission from system
+	 *
+	 * @param integer $ID
+	 *        	permission id
+	 * @param boolean $Recursive
+	 *        	delete all descendants
+	 *        	
+	 */
+	function Remove($ID, $Recursive = false)
+	{
+		$this->UnassignRoles ( $ID );
+		if (! $Recursive)
+			return $this->permissions->DeleteConditional ( "ID=?", $ID );
+		else
+			return $this->permissions->DeleteSubtreeConditional ( "ID=?", $ID );
+	}
+	
+	/**
+	 * Unassignes all roles of this permission, and returns their number
+	 *
+	 * @param integer $ID        	
+	 * @return integer
+	 */
+	function UnassignRoles($ID)
+	{
+		$res = jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_rolepermissions WHERE
+		PermissionID=?", $ID );
+		return $res;
+	}
+	
+	/**
+	 * Returns all roles assigned to a permission
+	 *
+	 * @param integer $Permission
+	 *        	ID
+	 * @param boolean $OnlyIDs
+	 *        	if true, result would be a 1D array of IDs
+	 * @return Array 2D or 1D or null
+	 */
+	function Roles($Permission, $OnlyIDs = true)
+	{
+		if (! is_numeric ( $Permission ))
+			$Permission = $this->Permission_ID ( $Permission );
+		if ($OnlyIDs)
+		{
+			$Res = jf::SQL ( "SELECT RoleID AS `ID` FROM
+				{$this->TablePrefix()}rbac_rolepermissions WHERE PermissionID=?", $Permission );
+			if (is_array ( $Res ))
+			{
+				$out = array ();
+				foreach ( $Res as $R )
+					$out [] = $R ['ID'];
+				return $out;
+			}
+			else
+				return null;
+		}
+		else
+			return jf::SQL ( "SELECT `TP`.* FROM {$this->TablePrefix()}rbac_rolepermissions AS `TR` 
+					RIGHT JOIN {$this->TablePrefix()}rbac_roles AS `TP` ON (`TR`.RoleID=`TP`.ID)
+					WHERE PermissionID=?", $Permission );
+	}
+}
+class RBACUserManager extends Model
+{
+	/**
+	 * Checks to see whether a user has a role or not
+	 *
+	 * @param integer $Role ID
+	 * @param integer $User ID optional
+	 * @return boolean success
+	 */
+	function HasRole($Role,$User = null)
+	{
+		if ($User === null)
+			$User = jf::CurrentUser ();
+		$R = jf::SQL ( "SELECT * FROM {$this->TablePrefix()}rbac_userroles WHERE
+				UserID=? AND RoleID=?", $User, $Role );
+		return $R===null;
+	}
+	/**
+	 * Assigns a role to a user
+	 *
+	 * @param integer $Role ID
+	 * @param integer $UserID ID
+	 *        	optional, UserID or the current user would be used (use 0 for
+	 *        	guest)
+	 * @return inserted or existing
+	 */
+	function Assign($Role, $UserID = null)
+	{
+		if ($UserID === null)
+			$UserID = jf::CurrentUser ();
+		return jf::SQL ( "INSERT INTO {$this->TablePrefix()}rbac_userroles
+			(UserID,RoleID,AssignmentDate)
+			VALUES (?,?,?)
+			", $UserID, $Role, jf::time () )>1;
+	}
+	/**
+	 * Unassigns a role from a user
+	 *
+	 * @param integer $Role ID
+	 * @param integer $UserID
+	 *        	optional, UserID or the current user would be used (use 0 for
+	 *        	guest)
+	 * @return boolean success
+	 */
+	function Unassign($Role, $UserID = null)
+	{
+		if ($UserID === null)
+			$UserID = jf::CurrentUser ();
+		return jf::SQL ( "DELETE FROM {$this->TablePrefix()}rbac_userroles
+			WHERE UserID=? AND RoleID=?", $UserID, $Role )>=1;
+	}
+	
+	/**
+	 * Returns all roles of a user
+	 * @param integer $UserID optional
+	 * @return array|null
+	 */
+	function AllRoles($UserID)
+	{
+		if ($UserID === null)
+			$UserID = jf::CurrentUser ();
+
+		return jf::SQL ( "SELECT TR.*
+					FROM
+					{$this->TablePrefix()}rbac_userroles AS `TRel`
+					JOIN {$this->TablePrefix()}rbac_roles AS `TR` ON
+					(`TRel`.RoleID=`TR`.ID)
+					WHERE TRel.UserID=?",$UserID );
+	}
+	/**
+	 * Return count of roles for a user
+	 * @param integer $UserID optional
+	 * @return integer
+	 */
+	function RoleCount($UserID=null)
+	{
+		if ($UserID === null)
+			$UserID = jf::CurrentUser ();
+		$Res = jf::SQL ( "SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}rbac_userroles WHERE UserID=?" );
+		return $Res [0] ['Result'];
+	}
+}
+class RBACManager extends Model
+{
+	function __construct()
+	{
+		$this->Users = new RBACUserManager ();
+		$this->Roles = new RoleManager ();
+		$this->Permissions = new PermissionManager ();
+	}
+	/**
+	 *
+	 * @var \jf\PermissionManager
+	 */
+	public $Permissions;
+	/**
+	 *
+	 * @var \jf\RoleManager
+	 */
+	public $Roles;
+	/**
+	 *
+	 * @var \jf\RBACUserManager
+	 */
+	public $Users;
+	
+
+
+
+	
+	
+	private $ps_Check = null;
+	/**
+	 * Checks whether a user has a permission or not.
+	 *
+	 * @param string|integer $Permission you can provide a path like /some/permission, a title, or the permission ID.
+	 * 					in case of ID, don't forget to provide integer (not a string containing a number)
+	 * @param integer $UserID optional
+	 * @return boolean
+	 */
+	function Check($Permission, $UserID = null)
+	{
+		if (is_int ( $Permission ))
+		{
+			$PermissionID = $Permission;
+		}
+		else
+		{
+			if (substr($Permission,0,1)=="/")
+				$PermissionID=$this->Permissions->PathID($Permission);
+			else
+				$PermissionID=$this->Permissions->TitleID($Permission);
+		}
+		if ($UserID === null)
+			$UserID = jf::CurrentUser ();
+		if ($this->ps_Check===null)
+		{
+			$this->ps_Check= jf::db ()->prepare ( "SELECT COUNT(*) AS Result
+			FROM /* Version 2.05 */
+				{$this->TablePrefix()}users AS TU
+				JOIN {$this->TablePrefix()}rbac_userroles AS TUrel ON (TU.ID=TUrel.UserID)
+			 
+				JOIN {$this->TablePrefix()}rbac_roles AS TRdirect ON (TRdirect.ID=TUrel.RoleID)
+				JOIN {$this->TablePrefix()}rbac_roles AS TR ON ( TR.Left BETWEEN TRdirect.Left AND TRdirect.Right)
+				/* we join direct roles with indirect roles to have all descendants of direct roles */
+				JOIN
+				(	{$this->TablePrefix()}rbac_permissions AS TPdirect
+				JOIN {$this->TablePrefix()}rbac_permissions AS TP ON ( TPdirect.Left BETWEEN TP.Left AND TP.Right)
+				/* direct and indirect permissions */
+				JOIN {$this->TablePrefix()}rbac_rolepermissions AS TRel ON (TP.ID=TRel.PermissionID)
+				/* joined with role/permissions on roles that are in relation with these permissions*/
+				) ON ( TR.ID = TRel.RoleID)
+				WHERE
+				TU.ID=?
+				AND
+				TPdirect.ID=?
+			" );
+		}
+		$this->ps_Check->execute ( $UserID, $Permission );
+		$Res = $this->ps_Check [$Index]->fetchAll ();
 		
-		if ($User===null) $User=jf::CurrentUser();
-	    if (!is_numeric($Role)) $Role=$this->Role_ID($Role);
-		$R=jf::SQL("SELECT * FROM {$this->TablePrefix()}rbac_userroles WHERE
-		UserID=? AND RoleID=?",$User,$Role);
-		if ($R) return true;
-		else return false;
-	}	
+		return $Res [0] ['Result']>=1;
+	}
+	function Enforce($Permission)
+	{
+		if (! $this->Check ( $Permission ))
+		{
+			if (jf::CurrentUser ())
+				jf::run ( "view/_internal/error/403", array ("Permission" => $Permission ) );
+			else
+				jf::run ( "view/_internal/error/401", array ("Permission" => $Permission ) );
+			exit ();
+		}
+	}
 }
-interface RBAC_RoleManagement 
-{
-	function Role_ID($RoleTitle);
-	
-	function Role_Info($Role); 
-	
-	function Role_Add($RoleTitle,$RoleDescription,$RoleParent=0);
-	function Role_Remove($Role);
-	function Role_Edit($Role,$RoleTitle=null,$RoleDescription=null);
-	
-    function Role_Children($Role=0);
-    function Role_Descendants($Role=0);
-	
-	function Role_All();
-		
-}
-interface RBAC_PermissionManagement
-{
-	function Permission_ID($PermissionTitle);
-	
-	function Permission_Info($Permission);
-	
-	function Permission_Add($PermissionTitle,$PermissionDescription,$PermissionParent=0);
-	function Permission_Remove($Permission);
-	function Permission_Edit($Permission,$PermissionTitle=null,$PermissionDescription=null);
-	
-	function Permission_Children($Permission=0);
-	function Permission_Descendants($Permission=0);
-	
-	function Permission_All();
-}
-interface RBAC_UserManagement
-{
-	//function User_AssignRole($UserID,$RoleID);
-	
-	//function User_UnassignRole($UserID,$RoleID);
-	
-	//function User_UnassignAllRoles($UserID);
-	
-	//function User_Validate($PermissionID,$UserID);
-
-	//function User_RoleList($UserID);
-	
-}
-interface RBAC_Management
-{
-	
-	//Role-Permission Relation
-	#function Assign($RoleID,$PermissionID);
-	#function Unassign($RoleID,$PermissionID);
-	#-function UnassignRolePermissions($RoleID);
-	#-function UnassignPermissionRoles($PermissionID);
-
-	#function PermissionList($RoleID);
-	#function RoleList($PermissionID);
-	
-	
-	
-	//Checks for existence of a permission
-	#function ValidateRolePermission($RoleID,$PermissionID);
-	
-
-	
-	
-}
-?>

@@ -2,12 +2,12 @@
 namespace jf;
 abstract class Model 
 {
-	function TablePrefix()
+	protected function TablePrefix()
 	{
 		return DatabaseManager::$TablePrefix;
 	}
 	
-	function ModuleFile($Module=null)
+	protected function ModuleFile($Module=null)
 	{
 		if ($Module===null)
 			$Module=$this->ModuleName();
@@ -16,7 +16,7 @@ abstract class Model
 	/**
 	 * returns module name for this object in format control/demo/__catch
 	 */
-	function ModuleName($Object=null)
+	protected function ModuleName($Object=null)
 	{
 		if ($Object===null) $Object=$this;
 		$reflector = new \ReflectionClass(get_class($Object));

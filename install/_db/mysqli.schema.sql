@@ -58,14 +58,14 @@ CREATE TABLE IF NOT EXISTS `PREFIX_options` (
 
 CREATE TABLE IF NOT EXISTS `PREFIX_rbac_permissions` (
   `ID` int(11) NOT NULL auto_increment,
-  `Left` int(11) NOT NULL,
-  `Right` int(11) NOT NULL,
+  `Lft` int(11) NOT NULL,
+  `Rght` int(11) NOT NULL,
   `Title` char(64) NOT NULL,
   `Description` text NOT NULL,
   PRIMARY KEY  (`ID`),
   KEY `Title` (`Title`),
-  KEY `Left` (`Left`),
-  KEY `Right` (`Right`)
+  KEY `Lft` (`Lft`),
+  KEY `Rght` (`Rght`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 --
@@ -99,14 +99,14 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_rolepermissions` (
 
 CREATE TABLE IF NOT EXISTS `PREFIX_rbac_roles` (
   `ID` int(11) NOT NULL auto_increment,
-  `Left` int(11) NOT NULL,
-  `Right` int(11) NOT NULL,
+  `Lft` int(11) NOT NULL,
+  `Rght` int(11) NOT NULL,
   `Title` varchar(128) NOT NULL,
   `Description` text NOT NULL,
   PRIMARY KEY  (`ID`),
   KEY `Title` (`Title`),
-  KEY `Left` (`Left`),
-  KEY `Right` (`Right`)
+  KEY `Lft` (`Lft`),
+  KEY `Rght` (`Rght`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 

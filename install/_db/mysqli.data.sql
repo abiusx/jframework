@@ -1,6 +1,6 @@
 
 
-INSERT INTO `PREFIX_rbac_permissions` (`ID`, `Left`, `Right`, `Title`, `Description`) VALUES
+INSERT INTO `PREFIX_rbac_permissions` (`ID`, `Lft`, `Rght`, `Title`, `Description`) VALUES
 (1, 1, 2, 'root', 'root');
 
 
@@ -9,7 +9,7 @@ INSERT INTO `PREFIX_rbac_rolepermissions` (`RoleID`, `PermissionID`, `Assignment
 
 
 
-INSERT INTO `PREFIX_rbac_roles` (`ID`, `Left`, `Right`, `Title`, `Description`) VALUES
+INSERT INTO `PREFIX_rbac_roles` (`ID`, `Lft`, `Rght`, `Title`, `Description`) VALUES
 (1, 1, 2, 'root', 'root');
 
 
