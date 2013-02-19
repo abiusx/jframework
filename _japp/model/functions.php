@@ -27,7 +27,13 @@ function trr($Phrase,$Lang=null,$Target=null)
 
 function print_($var)
 {
-	echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars(print_r($var,true))));
+	if ($var===null)
+		$data="NULL";
+	else
+		$data=print_r($var,true);
+	echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)));
+	flush();
+	ob_flush();
 }
 
 function exho($data)
