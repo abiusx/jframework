@@ -31,7 +31,7 @@ function print_($var)
 		$data="NULL";
 	else
 		$data=print_r($var,true);
-	echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)));
+	echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)))."<br/>";
 	flush();
 	ob_flush();
 }

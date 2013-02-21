@@ -246,20 +246,72 @@ abstract class LibRbacBaseTest extends JDbTest
 		$this->assertEquals ( null, $this->Instance ()->TitleID ( "{$this->Type()}1-1" ) );
 		$this->assertEquals ( null, $this->Instance ()->TitleID ( "{$this->Type()}1-1-1" ) );
 	}
+	/**
+	 * @depends testAdd
+	 */
 	function testAssign()
 	{
-		$this->markTestIncomplete();
+		$ID1=jf::$RBAC->Roles->Add("role1", "description of role1");
+		$ID2=jf::$RBAC->Roles->Add("role2", "description of role2");
+		$ID11=jf::$RBAC->Roles->Add("role1-1", "description of role",$ID1);
+		$ID12=jf::$RBAC->Roles->Add("role1-2", "description of role",$ID1);
+		$ID121=jf::$RBAC->Roles->Add("role1-2-1", "description of role",$ID12);
+		
+		$PID1=jf::$RBAC->Permissions->Add("permission1", "description");
+		$PID2=jf::$RBAC->Permissions->Add("permission2", "description");
+		$PID21=jf::$RBAC->Permissions->Add("permission2-1", "description",$PID2);
+		
+		$this->assertTrue($this->Instance()->Assign($ID121, $PID2));
+		$this->assertFalse($this->Instance()->Assign($ID121, $PID2));
 		
 	}
+	/**
+	 * @depends testAssign
+	 */
 	function testUnassign()
 	{
-		$this->markTestIncomplete();
+		$ID1=jf::$RBAC->Roles->Add("role1", "description of role1");
+		$ID2=jf::$RBAC->Roles->Add("role2", "description of role2");
+		$ID11=jf::$RBAC->Roles->Add("role1-1", "description of role",$ID1);
+		$ID12=jf::$RBAC->Roles->Add("role1-2", "description of role",$ID1);
+		$ID121=jf::$RBAC->Roles->Add("role1-2-1", "description of role",$ID12);
+		
+		$PID1=jf::$RBAC->Permissions->Add("permission1", "description");
+		$PID2=jf::$RBAC->Permissions->Add("permission2", "description");
+		$PID21=jf::$RBAC->Permissions->Add("permission2-1", "description",$PID2);
+		
+		$this->Instance()->Assign($ID121, $PID2);
+		
+		$this->assertFalse($this->Instance()->Unassign($ID121,$PID1));
+		$this->assertTrue($this->Instance()->Unassign($ID121,$PID2));
+		$this->assertFalse($this->Instance()->Unassign($ID121,$PID2)); //already removed
+		
 		
 	}
 	
 	function testResetAssignments()
 	{
-		$this->markTestIncomplete();
+		$ID1=jf::$RBAC->Roles->Add("role1", "description of role1");
+		$ID2=jf::$RBAC->Roles->Add("role2", "description of role2");
+		$ID11=jf::$RBAC->Roles->Add("role1-1", "description of role",$ID1);
+		$ID12=jf::$RBAC->Roles->Add("role1-2", "description of role",$ID1);
+		$ID121=jf::$RBAC->Roles->Add("role1-2-1", "description of role",$ID12);
+		
+		$PID1=jf::$RBAC->Permissions->Add("permission1", "description");
+		$PID2=jf::$RBAC->Permissions->Add("permission2", "description");
+		$PID21=jf::$RBAC->Permissions->Add("permission2-1", "description",$PID2);
+		
+		$this->Instance()->Assign($ID121, $PID2);		
+		$this->Instance()->Assign($ID1, $PID1);		
+		$this->Instance()->Assign($ID12, $PID21);
+
+		$this->Instance()->ResetAssignments(true);
+		
+		$this->assertFalse($this->Instance()->Unassign($ID121,$PID2));
+		$this->assertFalse($this->Instance()->Unassign($ID1,$PID1));
+		
+		$this->setExpectedException("\Exception");
+		$this->Instance()->ResetAssignments(false);
 		
 	}
 }

@@ -280,10 +280,22 @@ class jf
     }
     
     ##### RBAC ######
-    static function Check($Permission,$UserID=null)
+    /**
+     * Checks for a permission on a user
+     * @param string|integer $Permission title or path of permission, or ID (in integer not string) form of it
+     * @param string|integer $User username or user_id (in integer form), or null for current user
+	 * @throws \jf\RBACPermissionNotFoundException
+	 * @throws \jf\RBACUserNotFoundException
+     * @return boolean
+     */
+    static function Check($Permission,$User=null)
     {
-    	return jf::$RBAC->Check($Permission,$UserID);
+    	return jf::$RBAC->Check($Permission,$User);
     }
+    /**
+     * Enforce a permission on current user
+     * @param string|integer $Permission sent to RBAC::Check
+     */
     static function Enforce($Permission)
     {
     	return jf::$RBAC->Enforce($Permission);
