@@ -33,7 +33,7 @@ function print_($var)
 		$data=print_r($var,true);
 	echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)))."<br/>";
 	flush();
-	ob_flush();
+	if (ob_get_contents()) ob_flush();
 }
 
 function exho($data)

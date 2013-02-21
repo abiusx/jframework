@@ -87,7 +87,10 @@ DumpResultRows($result->skipped(), "gray", "white", "Tests Skipped",true);
 
 <tr style='background-color:black;color:white;text-align:right;'>
 <td colspan='4'>
-	<span style='float:left;'>Time: <?php echo $profiler->Timer()?> seconds</span> Total: <?php echo ($result->count());?> Tests in <?php echo count(\jf\TestLauncher::$TestFiles);?> Files
+	<span style='float:left;'>Time: <?php echo $profiler->Timer()?> seconds <span style='color:gray;'>(<?php 
+	printf("%.3fs on %d SQL queries",jf::db()->QueryTime(),jf::db()->QueryCount());
+	
+	?>)</span></span> Total: <?php echo ($result->count());?> Tests in <?php echo count(\jf\TestLauncher::$TestFiles);?> Files
 </td>
 </tr>
 

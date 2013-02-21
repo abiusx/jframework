@@ -68,7 +68,7 @@ class DB_mysqli extends BaseDatabase
 	function query($QueryString)
 	{
 		if (! $this->Connection) return null;
-		$this->QueryStart();
+		$this->QueryStart(func_get_args());
 		$res=$this->Connection->query ( $QueryString );
 		$this->QueryEnd();
 		return $res;
@@ -77,7 +77,7 @@ class DB_mysqli extends BaseDatabase
 	function exec($Query)
 	{
 		if (! $this->Connection) return null;
-		$this->QueryStart();
+		$this->QueryStart(func_get_args());
 		$this->Connection->query($Query);
 		$this->QueryEnd();
 		return $this->Connection->affected_rows;
@@ -120,10 +120,21 @@ class DB_Statement_mysqli extends BaseDatabaseStatement
 	 */
 	private $Statement;
 
+	/**
+	 * used for debugging
+	 * @var string
+	 */	
+	private $_query;
+	/**
+	 * used for debugging
+	 * @var array
+	 */
+	private $_params;
 	function __construct(DB_mysqli $DB, $Query)
 	{
 		$this->DB= $DB;
 		$this->Statement=$DB->Connection->prepare ( $Query );
+		$this->_query=$Query;
 		if (mysqli_errno($DB->Connection)) throw new \Exception("MySQLi error: ".mysqli_error($DB->Connection));
 	}
 
@@ -140,6 +151,7 @@ class DB_Statement_mysqli extends BaseDatabaseStatement
 	{
 		if (!$this->DB) return;
 		$args = func_get_args ();
+		$this->_params=$args;
 		$types = str_repeat ( "s", count ( $args ) );
 		array_unshift($args,$types);
 		//TODO: optimize this on PHP 5.3
@@ -158,6 +170,7 @@ class DB_Statement_mysqli extends BaseDatabaseStatement
 	 */
 	function execute()
 	{
+		$args=func_get_args();
 		if (!$this->DB) return;
 		if (func_num_args () >= 1)
 		{
@@ -166,7 +179,13 @@ class DB_Statement_mysqli extends BaseDatabaseStatement
 				$this, "bindAll" 
 			), $args );
 		}
-		$this->DB->QueryStart ();
+		else
+		{
+			if ($this->_params===null)
+				$this->_params=array();
+			$args=array_merge(array($this->_query),$this->_params);
+		}
+		$this->DB->QueryStart ($args);
 		$r=$this->Statement->execute ();
 		$this->DB->QueryEnd ();
 		//$this->Statement->store_result();

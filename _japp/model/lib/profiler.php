@@ -20,12 +20,12 @@ class Profiler extends Model
     function GetTime ($ReturnMicroseconds = true)
     {
         $match=array();
-        preg_match("/^(.*?) (.*?)$/", microtime(), $match);
-        $utime = $match[2] + $match[1];
+        list($microsec,$sec)=explode(" ",microtime());
+        $utime = $microsec +$sec;
         if ($ReturnMicroseconds) {
             $utime *= 1000000;
         }
-        return $utime;
+        return sprintf("%d",$utime);
     }
 
     /**
@@ -33,7 +33,7 @@ class Profiler extends Model
      */
     function Reset ()
     {
-        $this->Start = $this->GetTime();
+        $this->Start = $this->GetTime(true);
     }
     /**
      * Returns the time calculated
@@ -46,11 +46,11 @@ class Profiler extends Model
         if ($Start===null) $Start=$this->Start;
         if ($End===null) 
         	if ($this->End===null)
-        		$End=$this->GetTime();
+        		$End=$this->GetTime(true);
         	else
         		$End=$this->End;
         $this->TimeMicroseconds = $End - $Start;
-        return $this->Time = $this->TimeMicroseconds / 1000000.0;
+        return $this->Time = sprintf("%f",$this->TimeMicroseconds / 1000000.0);
     }
     
     /**
@@ -58,7 +58,7 @@ class Profiler extends Model
      */
     function Stop()
     {
-    	$this->End=$this->GetTime();
+    	$this->End=$this->GetTime(true);
     }
 }
 
