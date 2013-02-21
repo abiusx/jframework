@@ -308,7 +308,7 @@ abstract class BaseRBAC extends Model
 			jf::SQL ( "delete from sqlite_sequence where name=? ", $this->TablePrefix () . "rbac_{$this->Type()}" );
 		else
 			throw new \Exception ( "RBAC can not reset table on this type of database: {$Adapter}" );
-		$iid = jf::SQL ( "INSERT INTO {$this->TablePrefix()}rbac_{$this->Type()} (Title,Description) VALUES (?,?)", "root", "root" );
+		$iid = jf::SQL ( "INSERT INTO {$this->TablePrefix()}rbac_{$this->Type()} (Title,Description,Lft,Rght) VALUES (?,?,?,?)", "root", "root",0,1 );
 		return $res;
 	}
 	
