@@ -196,18 +196,21 @@ class jf
 	}
 	static function SaveUserSetting($Name, $Value,$UserID=null,$Timeout = null)
 	{
-		if ($Timeout===null)
-			$Timeout=jfSessionManager::$NoAccessTimeout;
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Settings,"Save"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"SaveUser"),$a);	    
 	}
 	static function DeleteGeneralSetting($Name,$UserID=null)
 	{
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"DeleteGeneral"),$a);	    
 	}
-	
-    static function LoadUserSetting($Name)
+	/**
+	 * loads save option
+	 * @param string $Name
+	 * @param int $UserID
+	 * @return mixed
+	 */
+    static function LoadUserSetting($Name,$UserID)
 	{
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"Load"),$a);	    

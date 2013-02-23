@@ -10,20 +10,35 @@ namespace jf;
 class SettingManager extends Model
 {
 	static $DefaultTimeout=86400; //24*60*60;
-	
+	/**
+	 * internal function use by other services
+	 * @param string $Name
+	 * @param mixed $Value
+	 * @param int $UserID
+	 * @param int $Timeout
+	 * @return boolean success
+	 */
 	private function _Save($Name, $Value, $UserID = 0, $Timeout)
 	{
 		$Datetime = jf::time () + $Timeout;
 		if ($this->PreparedSaveStatement===null)    
 	        $this->PreparedSaveStatement=jf::db()->prepare( "REPLACE INTO {$this->TablePrefix()}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
-	    $this->PreparedSaveStatement->execute( $Name, serialize ( $Value ), $UserID, $Datetime );
+	    $r=$this->PreparedSaveStatement->execute( $Name, serialize ( $Value ), $UserID, $Datetime );
 		$this->_Sweep ();
+		return $r>=1;
 	}
+	/**
+	 * internal function use by other services
+	 * @param string $Name
+	 * @param int $UserID
+	 * @return boolean success
+	 */
 	private function _Delete($Name, $UserID = 0)
 	{
 	    if ($this->PreparedDeleteStatement===null)    
 	        $this->PreparedDeleteStatement=jf::db()->prepare( "DELETE FROM {$this->TablePrefix()}options  WHERE UserID=? AND Name=?");
-	    $this->PreparedDeleteStatement->execute($UserID, $Name);
+	    $r=$this->PreparedDeleteStatement->execute($UserID, $Name);
+	    return $r>=1;
 	}
 	/**
 	 * Loads an option from the database
@@ -32,33 +47,10 @@ class SettingManager extends Model
 	 * @param Integer $UserID 0 for General Options
 	 * @return String Value on success, null on failure
 	 */
-	private function _Load($Name, $UserID = 0)
-	{
-	    $this->_Sweep ();
-	    if ($this->PreparedLoadStatement===null)    
-	        $this->PreparedLoadStatement=jf::db()->prepare("SELECT Value FROM {$this->TablePrefix()}options WHERE UserID=? AND Name=?");
-	    $this->PreparedLoadStatement->execute($UserID, $Name);
-	    $Res=$this->PreparedLoadStatement->fetchAll();
-	    if ($Res )
-		{
-		    return unserialize ( $Res [0] ['Value'] );
-		} 
-		else
-			return null;
-	}
-	private function _LoadSet($Prefix,$UserID=0)
-	{
-	    $this->_Sweep ();
-	    if ($this->PreparedLoadSetStatement===null)    
-	        $this->PreparedLoadSetStatement=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE UserID=? AND Name LIKE ?");
-	    $this->PreparedLoadStatement->execute($UserID, $Prefix);
-	    $Res=$this->PreparedLoadStatement->fetchAll();
-		return $Res;
-	}
-	private function _Sweep()
+	function _Sweep($force=false)
 	{
 		
-		if (rand ( 0, 1000 ) / 1000.0 > .1)
+		if(!$force) if (rand ( 0, 1000 ) / 1000.0 > .1)
 			return; //percentage of SweepRatio, don't always do this when called
 
 	    if ($this->PreparedSweepStatement===null)    
@@ -75,42 +67,17 @@ class SettingManager extends Model
 	 * 
 	 */
 	
-	private function _Loads($UserID)
+	private function _Load($Name, $UserID=0)
 	{
-	    if (func_num_args()<2) return false;
-	    $Params=func_get_args();
-	    array_shift($Params); //rid UserID
-	    $flag=true;
-	    foreach ($Params as $k=>$v)
-	    {
-	        if ($flag)
-	            $flag=false;
-	        else 
-	            $Q.=" OR ";
-	        $Q.="Name=?";
-	    }
-	    
-		$Res = 
-		call_user_func_array(array($this->DB,"Execute"),
-		 array_merge(array("SELECT Name,Value FROM {$this->TablePrefix()}options WHERE UserID=? ".
-			" AND ($Q)"), array($UserID),$Params));
-		if (count ( $Res ))
-		{
-			foreach ($Res as $k=>$v)
-			    foreach ($v as $k2=>$v2)
-			    {
-			        if ($k2=="Value") 
-			        {
-			            $Res[$k][$k2]=unserialize($v2);
-			            $Out[$Res[$k]["Name"]]=$Res[$k][$k2];
-			        }
-			    }
-		    return $Out;
-		} 
-		else
+		$this->_Sweep ();
+		if ($this->PreparedLoadStatement===null)
+			$this->PreparedLoadStatement=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE Name=? AND UserID=?");
+		$this->PreparedLoadStatement->execute($Name, $UserID);
+		$Res=$this->PreparedLoadStatement->fetchAll();
+		if($Res===null)
 			return null;
-	    
-	    
+		else
+			return unserialize($Res[0]['Value']);
 	}
 	function SaveGeneral($Name, $Value, $Timeout = null)
 	{
@@ -125,7 +92,16 @@ class SettingManager extends Model
 	{
 		return $this->LoadSet($Prefix,0);
 	}
-	function Save($Name, $Value,$UserID=null, $Timeout = null)
+	/**
+	 * save setting for user
+	 * @param string $Name
+	 * @param mixed $Value
+	 * @param int $UserID
+	 * @param int $Timeout
+	 * @throws \Exception
+	 * @return boolean success for saving data
+	 */
+	function SaveUser($Name, $Value,$UserID=null, $Timeout = null)
 	{
 		if ($UserID===null)
 		{
@@ -137,7 +113,7 @@ class SettingManager extends Model
 		
 		if ($Timeout===null ) $Timeout=TIMESTAMP_WEEK;
 		
-		$this->_Save ( $Name, $Value, $UserID, $Timeout );
+		return $this->_Save ( $Name, $Value, $UserID, $Timeout );
 	}
 	function Load($Name,$UserID=null)
 	{
@@ -166,7 +142,7 @@ class SettingManager extends Model
 			else
 				$UserID=jf::CurrentUser();
 		}
-		$this->_Delete ( $Name, $UserID );
+		return $this->_Delete ( $Name, $UserID );
 	}
 	function DeleteAll()
 	{
