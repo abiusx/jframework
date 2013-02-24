@@ -8,8 +8,10 @@ class MainTest extends JTestSuite
 	
 	function testStress()
 	{
+		print_(jf::db()->QueryStats());
 		for ($i=0;$i<100;++$i)
 			$this->assertTrue(jf::$App->Run(""));
+		
 	}
 
 }

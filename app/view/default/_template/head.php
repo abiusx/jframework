@@ -7,5 +7,6 @@
 <link rel="shortcut icon" href="<?php echo (jf::url());?>/img/jlogo.png" />
 <link rel="stylesheet" href="<?php echo (jf::url());?>/style/base.css" />
 <?php echo implode("\n",$Append);?>
+<base href="<?php echo jf::url();?>" />
 </head>
 <body>

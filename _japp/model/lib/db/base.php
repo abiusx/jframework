@@ -1,6 +1,6 @@
 <?php
 namespace jf;
-trait DatabaseProfiler {
+class trait_DatabaseProfiler {
 	/**
 	 * Converts a query in prepared statements format with all its parameters to
 	 * a string
@@ -128,9 +128,9 @@ trait DatabaseProfiler {
  * @author abiusx
  *        
  */
-abstract class BaseDatabase
+abstract class BaseDatabase extends trait_DatabaseProfiler
 {
-	use DatabaseProfiler;
+// 	use DatabaseProfiler;
 	protected $QueryCount;
 	protected $QueryTime;
 	private $tempQueryTime; // for QueryTimeIn()
