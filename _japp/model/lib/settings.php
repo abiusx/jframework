@@ -40,13 +40,6 @@ class SettingManager extends Model
 	    $r=$this->PreparedDeleteStatement->execute($UserID, $Name);
 	    return $r>=1;
 	}
-	/**
-	 * Loads an option from the database
-	 *
-	 * @param String $Name
-	 * @param Integer $UserID 0 for General Options
-	 * @return String Value on success, null on failure
-	 */
 	function _Sweep($force=false)
 	{
 		
@@ -79,18 +72,34 @@ class SettingManager extends Model
 		else
 			return unserialize($Res[0]['Value']);
 	}
+	/**
+	 * save general settings
+	 * @param String $Name
+	 * @param int $Value
+	 * @param int $Timeout
+	 * @return boolean success
+	 */
 	function SaveGeneral($Name, $Value, $Timeout = null)
 	{
 		if ($Timeout===null ) $Timeout=self::$DefaultTimeout;
-		$this->_Save ( $Name, $Value, 0, $Timeout );
+		return $this->_Save ( $Name, $Value, 0, $Timeout );
 	}
+	/**
+	 * load general settings
+	 * @param string $Name
+	 * @return Ambigous <AssociativeArray, NULL, mixed>
+	 */
 	function LoadGeneral($Name)
 	{
 		return $this->_Load ( $Name, 0 );
 	}
-	function LoadSetGeneral($Prefix)
+	/**
+	 * delete general settings
+	 * @param string $Name
+	 */
+	function DeleteGeneral($Name)
 	{
-		return $this->LoadSet($Prefix,0);
+		return $this->_Delete ( $Name, 0 );
 	}
 	/**
 	 * save setting for user
@@ -115,7 +124,13 @@ class SettingManager extends Model
 		
 		return $this->_Save ( $Name, $Value, $UserID, $Timeout );
 	}
-	function Load($Name,$UserID=null)
+	/**
+	 * Loads an option from the database
+	 * @param String $Name
+	 * @param Integer $UserID
+	 * @return String Value on success, null on failure
+	 */
+	function LoadUser($Name,$UserID=null)
 	{
 		if ($UserID===null)
 		{
@@ -127,13 +142,14 @@ class SettingManager extends Model
 		return $this->_Load ( $Name, $UserID );
 	
 	}
-	function LoadSet($Prefix)
-	{
-		if (jf::CurrentUser() == null)
-			throw new \Exception ( "Can not load user options without a logged in user." );
-		return $this->_LoadSet ( $Prefix, jf::CurrentUser() );
-	}
-	function Delete($Name,$UserID=null)
+	/**
+	 * delete user settings
+	 * @param string $Name
+	 * @param int $UserID
+	 * @throws \Exception
+	 * @return boolean success
+	 */
+	function DeleteUser($Name,$UserID=null)
 	{
 		if ($UserID===null)
 		{
@@ -144,32 +160,42 @@ class SettingManager extends Model
 		}
 		return $this->_Delete ( $Name, $UserID );
 	}
-	function DeleteAll()
+	/**
+	 * delete all user settings
+	 * @throws \Exception
+	 * @return int, number of rows
+	 */
+	function DeleteAllUser($UserID=null)
 	{
-		if (jf::CurrentUser() == null)
-			throw new \Exception ( "Can not delete user options without a logged in user." );
-		$this->Execute (  "DELETE FROM {$this->TablePrefix()}options WHERE UserID=?", jf::CurrentUser() );
+		if ($UserID===null)
+		{
+			if (jf::CurrentUser() == null)
+				throw new \Exception ( "Can not load user options without a logged in user." );
+			else
+				$UserID=jf::CurrentUser();
+		}
+		$r=jf::SQL (  "DELETE FROM {$this->TablePrefix()}options WHERE UserID=?", $UserID );
+		return $r;
 	}
-	function DeleteGeneral($Name)
-	{
-		$this->_Delete ( $Name, 0 );
-	}
+	/**
+	 * save settings in session
+	 * @param string $Name
+	 * @param int $Value
+	 * @param int $Timeout
+	 * @return boolean success
+	 */
 	function SaveSession($Name,$Value,$Timeout = null)
 	{
 		if ($Timeout===null) $Timeout=self::$DefaultTimeout;
-	    $this->SaveGeneral(session_id()."_$Name",$Value,$Timeout);   
+	    return $this->SaveGeneral(session_id()."_$Name",$Value,$Timeout);   
 	}
 	function LoadSession($Name)
 	{
 	     return $this->LoadGeneral(session_id()."_$Name");   
 	}
-	function LoadSetSession($Prefix)
-	{
-		return $this->LoadSetGeneral(session_id()."_{$Prefix}");
-	}
 	function DeleteSession($Name)
 	{
-        $this->DeleteGeneral(session_id()."_$Name");
+        return $this->DeleteGeneral(session_id()."_$Name");
 	}
 	private $PreparedLoadSetStatement=null;
 	private $PreparedLoadStatement=null;

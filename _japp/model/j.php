@@ -184,22 +184,47 @@ class jf
     
     
     #### Options Section ####
+    /**
+     * save general settings
+     * @param string $Name
+     * @param int $Value
+     * @param int $Timeout
+     * @return mixed
+     */
     static function SaveGeneralSetting($Name, $Value, $Timeout = null)
 	{
 		$a=func_get_args();
         return call_user_func_array(array(jf::$Settings,"SaveGeneral"),$a);	    
 	}
+	/**
+	 * load general settings
+	 * @param string $Name
+	 * @return mixed
+	 */
 	static function LoadGeneralSetting($Name)
 	{
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"LoadGeneral"),$a);	    
 	}
+	/**
+	 * save user settings
+	 * @param string $Name
+	 * @param int $Value
+	 * @param int $UserID
+	 * @param int $Timeout
+	 * @return mixed
+	 */
 	static function SaveUserSetting($Name, $Value,$UserID=null,$Timeout = null)
 	{
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"SaveUser"),$a);	    
 	}
-	static function DeleteGeneralSetting($Name,$UserID=null)
+	/**
+	 * delete general settings
+	 * @param string $Name
+	 * @return mixed
+	 */
+	static function DeleteGeneralSetting($Name)
 	{
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"DeleteGeneral"),$a);	    
@@ -213,26 +238,46 @@ class jf
     static function LoadUserSetting($Name,$UserID)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Settings,"Load"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"LoadUser"),$a);	    
 	}
+	/**
+	 * save settings in session
+	 * @param string $Name
+	 * @param int $Value
+	 * @param int $Timeout
+	 * @return mixed
+	 */
 	static function SaveSessionSetting($Name,$Value,$Timeout = null)
 	{
-		if ($Timeout===null)
-			$Timeout=reg("jf/session/timeout/General");
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"SaveSession"),$a);	    
 	}
+	/**
+	 * delete user setting
+	 * @param string $Name
+	 * @param int $ID
+	 * @return mixed
+	 */
 	static function DeleteUserSetting($Name,$ID=null)
 	{
 		$a=func_get_args();
-		return call_user_func_array(array(jf::$Settings,"Delete"),$a);	    
+		return call_user_func_array(array(jf::$Settings,"DeleteUser"),$a);	    
 	}
-	
+	/**
+	 * load settings for session
+	 * @param string $Name
+	 * @return mixed
+	 */
 	static function LoadSessionSetting($Name)
 	{
 		$a=func_get_args();
 		return call_user_func_array(array(jf::$Settings,"LoadSession"),$a);	    
 	}
+	/**
+	 * delete settings in session
+	 * @param string $Name
+	 * @return mixed
+	 */
 	static function DeleteSessionSetting($Name)
 	{
 		$a=func_get_args();
