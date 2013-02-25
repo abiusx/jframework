@@ -65,7 +65,7 @@ class Password
 		
 		$Pass="";
 		for ($i=0;$i<$Length;++$i)
-			$Pass.=$chars[mt_rand(0, strlen($chars)-1)];
+			$Pass.=$chars[jf::rand(0, strlen($chars)-1)];
 		return $Pass;
 	}
 	
@@ -80,7 +80,7 @@ class Password
 	public function Make($Username,$RawPassword,$DynamicSalt=null,$Protocol=null)
 	{
 		if ($DynamicSalt===null) 
-			$this->DynamicSalt=hash("sha512",rand());
+			$this->DynamicSalt=hash("sha512",jf::rand());
 		else
 			$this->DynamicSalt=$DynamicSalt;
 		if ($Protocol===null)

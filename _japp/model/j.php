@@ -161,6 +161,13 @@ class jf
 			return time();
 		return self::$time;
 	}
+	
+	static function rand($min=0,$max=null)
+	{
+		if ($max===null)
+			$max=1<<31;
+		return jf::$Security->Random()%($max-$min)+$min;
+	}
 	/**
 	 * Use this to move time from real time for testing purposes
 	 * @param integer $difference optional, do not provide to reset
@@ -363,7 +370,7 @@ class jf
         self::$RBAC = &$App->RBAC;
         self::$Security=&$App->Security;
     }
-    }
+}
 class j extends jf
 {
     
