@@ -31,7 +31,10 @@ function print_($var)
 		$data="NULL";
 	else
 		$data=print_r($var,true);
-	echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)))."<br/>";
+	if (jf::$RunMode==RunModes::CLI)
+		echo $data."\n";
+	else
+		echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)))."<br/>";
 	flush();
 	if (ob_get_contents()) ob_flush();
 }
