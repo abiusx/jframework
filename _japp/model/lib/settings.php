@@ -7,9 +7,24 @@
  */
 //Note: userID = 0 means general option
 namespace jf;
+
+class Timeout {
+	const NEVER=2147483647;
+	const SECOND=1;
+	const MINUTE=60;
+	const HOUR=3600;
+	const DAY=86400;
+	const WEEK=604800;
+	const MONTH=2592000;
+	const YEAR=31536000;
+}
 class SettingManager extends Model
 {
-	static $DefaultTimeout=86400; //24*60*60;
+	private $PreparedLoadStatement=null;
+	private $PreparedSaveStatement=null;
+	private $PreparedDeleteStatement=null;
+	private $PreparedSweepStatement=null;
+	
 	/**
 	 * internal function use by other services
 	 * @param string $Name
@@ -18,7 +33,7 @@ class SettingManager extends Model
 	 * @param int $Timeout
 	 * @return boolean success
 	 */
-	private function _Save($Name, $Value, $UserID = 0, $Timeout)
+	protected function _Save($Name, $Value, $UserID = 0, $Timeout)
 	{
 		$Datetime = jf::time () + $Timeout;
 		if ($this->PreparedSaveStatement===null)    
@@ -33,30 +48,31 @@ class SettingManager extends Model
 	 * @param int $UserID
 	 * @return boolean success
 	 */
-	private function _Delete($Name, $UserID = 0)
+	protected function _Delete($Name, $UserID = 0)
 	{
 	    if ($this->PreparedDeleteStatement===null)    
 	        $this->PreparedDeleteStatement=jf::db()->prepare( "DELETE FROM {$this->TablePrefix()}options  WHERE UserID=? AND Name=?");
 	    $r=$this->PreparedDeleteStatement->execute($UserID, $Name);
 	    return $r>=1;
 	}
+	/**
+	 * Delete expired settings with a probability
+	 * @param boolean $force run the sweep 100%
+	 */
 	function _Sweep($force=false)
 	{
-		
 		if(!$force) if (rand ( 0, 1000 ) / 1000.0 > .1)
 			return; //percentage of SweepRatio, don't always do this when called
-
 	    if ($this->PreparedSweepStatement===null)    
 	        $this->PreparedSweepStatement=jf::db()->prepare("DELETE FROM {$this->TablePrefix()}options WHERE Expiration<=?");
 	    $this->PreparedSweepStatement->execute(jf::time());
-			
-	
 	}
 	/**
-	 * This function loads a set of options together
+	 * This function loads a setting
 	 * It expects to get at least 2 parameters
-	 * @param Integer $UserID
-	 * @return AssociativeArray of option Name/Value pairs as Key/Value in the array.
+	 * @param string $Name
+	 * @param integer $UserID
+	 * @return mixed loaded item
 	 * 
 	 */
 	
@@ -73,19 +89,18 @@ class SettingManager extends Model
 			return unserialize($Res[0]['Value']);
 	}
 	/**
-	 * save general settings
-	 * @param String $Name
-	 * @param int $Value
-	 * @param int $Timeout
+	 * Save general settings for application
+	 * @param string $Name
+	 * @param mixed $Value
+	 * @param integer $Timeout
 	 * @return boolean success
 	 */
-	function SaveGeneral($Name, $Value, $Timeout = null)
+	function SaveGeneral($Name, $Value, $Timeout = Timeout::NEVER)
 	{
-		if ($Timeout===null ) $Timeout=self::$DefaultTimeout;
 		return $this->_Save ( $Name, $Value, 0, $Timeout );
 	}
 	/**
-	 * load general settings
+	 * Load general application settings
 	 * @param string $Name
 	 * @return Ambigous <AssociativeArray, NULL, mixed>
 	 */
@@ -94,7 +109,7 @@ class SettingManager extends Model
 		return $this->_Load ( $Name, 0 );
 	}
 	/**
-	 * delete general settings
+	 * Delete general settings
 	 * @param string $Name
 	 */
 	function DeleteGeneral($Name)
@@ -102,7 +117,7 @@ class SettingManager extends Model
 		return $this->_Delete ( $Name, 0 );
 	}
 	/**
-	 * save setting for user
+	 * Save setting for a user
 	 * @param string $Name
 	 * @param mixed $Value
 	 * @param int $UserID
@@ -110,7 +125,7 @@ class SettingManager extends Model
 	 * @throws \Exception
 	 * @return boolean success for saving data
 	 */
-	function SaveUser($Name, $Value,$UserID=null, $Timeout = null)
+	function SaveUser($Name, $Value,$UserID=null, $Timeout = Timeout::NEVER)
 	{
 		if ($UserID===null)
 		{
@@ -184,23 +199,27 @@ class SettingManager extends Model
 	 * @param int $Timeout
 	 * @return boolean success
 	 */
-	function SaveSession($Name,$Value,$Timeout = null)
+	function SaveSession($Name,$Value,$Timeout = Timeout::NEVER)
 	{
-		if ($Timeout===null) $Timeout=self::$DefaultTimeout;
 	    return $this->SaveGeneral(session_id()."_$Name",$Value,$Timeout);   
 	}
+	/**
+	 * Load setting stored in session
+	 * @param string $Name
+	 * @return mixed
+	 */
 	function LoadSession($Name)
 	{
 	     return $this->LoadGeneral(session_id()."_$Name");   
 	}
+	/**
+	 * Delete setting stored in session
+	 * @param string $Name
+	 * @return boolean
+	 */
 	function DeleteSession($Name)
 	{
         return $this->DeleteGeneral(session_id()."_$Name");
 	}
-	private $PreparedLoadSetStatement=null;
-	private $PreparedLoadStatement=null;
-	private $PreparedSaveStatement=null;
-	private $PreparedDeleteStatement=null;
-	private $PreparedSweepStatement=null;
 }
 ?>
