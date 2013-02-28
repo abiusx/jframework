@@ -15,31 +15,31 @@ class Profiler extends Model
     /**
      * Returns time in microseconds
      * @param boolean $ReturnMicroseconds
-     * @return string
+     * @return float
      */
-    function GetTime ($ReturnMicroseconds = true)
+    function GetTime ($ReturnMicroseconds=true)
     {
-        $match=array();
         list($microsec,$sec)=explode(" ",microtime());
         $utime = $microsec +$sec;
         if ($ReturnMicroseconds) {
             $utime *= 1000000;
         }
-        return sprintf("%d",$utime);
+        return $utime;
     }
 
     /**
      * Reset the timer
+     * @return float
      */
     function Reset ()
     {
-        $this->Start = $this->GetTime(true);
+        return $this->Start = $this->GetTime(true);
     }
     /**
      * Returns the time calculated
-     * @param string $Start
-     * @param string $End
-     * @return string
+     * @param int $Start
+     * @param int $End
+     * @return float
      */
     function Timer ($Start=null,$End=null)
     {
@@ -50,16 +50,15 @@ class Profiler extends Model
         	else
         		$End=$this->End;
         $this->TimeMicroseconds = $End - $Start;
-        return $this->Time = sprintf("%f",$this->TimeMicroseconds / 1000000.0);
+        return $this->Time = $this->TimeMicroseconds / 1000000.0;
     }
     
     /**
      * Stops the timer
+     * @return float
      */
     function Stop()
     {
-    	$this->End=$this->GetTime(true);
+    	return $this->End=$this->GetTime(true);
     }
 }
-
-?>
