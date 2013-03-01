@@ -19,12 +19,21 @@ class LibSettingsTest extends JDbTest
 	/**
 	 * @depends testLoadGeneral
 	 */
-	function testLoadGeneralTimeOut()
+	function testSaveGeneralTimeOut()
 	{
-		$this->assertTrue(jf::SaveGeneralSetting("some_name", "some_value",24*60*60));
-		$this->movetime(24*60*60);
+		
+		$this->assertTrue(jf::SaveGeneralSetting("some_name", "some_value",jf\Timeout::DAY));
+		$this->movetime(jf\Timeout::DAY);
 		jf::$Settings->_Sweep(true);
 		$this->assertNull(jf::LoadGeneralSetting("some_name"));
+		
+		$this->assertTrue(jf::SaveGeneralSetting("some_name", "some_value",1));
+		$this->movetime(jf\Timeout::YEAR*10);
+		$this->assertNotNull(jf::LoadGeneralSetting("some_name", 1));
+			
+		$this->movetime(jf\Timeout::NEVER);
+		jf::$Settings->_Sweep(true);
+		$this->assertNull(jf::LoadGeneralSetting("some_name", 1));
 	}
 	/**
 	 * @depends testSaveGeneral
@@ -62,8 +71,16 @@ class LibSettingsTest extends JDbTest
 	 */	
 	function testSaveUserTimeOut()
 	{
- 		$this->assertTrue(jf::SaveUserSetting("some_name", "some_value",1,24*60*60));
- 		$this->movetime(24*60*60);
+		$this->assertTrue(jf::SaveUserSetting("some_name1", "some_value",1,jf\Timeout::DAY));
+		$this->movetime(jf\Timeout::DAY);
+		jf::$Settings->_Sweep(true);
+		$this->assertNull(jf::LoadUserSetting("some_name1", 1));
+		
+ 		$this->assertTrue(jf::SaveUserSetting("some_name", "some_value",1));
+ 		$this->movetime(jf\Timeout::YEAR*10);
+ 		$this->assertNotNull(jf::LoadUserSetting("some_name", 1));
+ 		
+ 		$this->movetime(jf\Timeout::NEVER);
  		jf::$Settings->_Sweep(true);
  		$this->assertNull(jf::LoadUserSetting("some_name", 1));
 	}
@@ -113,10 +130,18 @@ class LibSettingsTest extends JDbTest
 	 */
 	function testSaveSessionTimeOut()
 	{
-		$this->assertTrue(jf::SaveSessionSetting("some_name", "some_value",24*60*60));
-		$this->movetime(24*60*60);
+		$this->assertTrue(jf::SaveSessionSetting("some_name", "some_value",jf\Timeout::DAY));
+		$this->movetime(jf\Timeout::DAY);
 		jf::$Settings->_Sweep(true);
 		$this->assertNull(jf::LoadSessionSetting("some_name"));
+		
+		$this->assertTrue(jf::SaveSessionSetting("some_name", "some_value",1));
+		$this->movetime(jf\Timeout::YEAR*10);
+		$this->assertNotNull(jf::LoadSessionSetting("some_name", 1));
+			
+		$this->movetime(jf\Timeout::NEVER);
+		jf::$Settings->_Sweep(true);
+		$this->assertNull(jf::LoadSessionSetting("some_name", 1));
 	}
 	/**
 	 * @depends testSaveSession
@@ -127,3 +152,4 @@ class LibSettingsTest extends JDbTest
 		$this->assertTrue(jf::DeleteSessionSetting("some_name"));
 	}
 }
+?>
