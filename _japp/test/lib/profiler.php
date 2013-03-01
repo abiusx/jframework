@@ -20,9 +20,9 @@ class LibProfilerTest extends JTest
 		$this->assertEquals($profiler->Timer(4000000,10000000),6.0);
 		
 		$profiler->Reset();
-		//usleep(100);
+		usleep(100);
 		$profiler->Stop();
-		$this->assertGreaterThan($profiler->Timer()-0.0001,0.00001);
+		$this->assertGreaterThan($profiler->Timer()-0.0001,0.001);
 		
 	}
 }
