@@ -57,6 +57,7 @@ class Autoload
 				"SettingManager"=>"model/lib/settings",
 				"RBACManager"=>"model/lib/rbac",
 				"ServiceManager"=>"model/service/manager",
+				"Password"=>"model/lib/security/password",
 				
 				);
 		
