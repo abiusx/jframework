@@ -35,7 +35,10 @@ class SettingManager extends Model
 	 */
 	protected function _Save($Name, $Value, $UserID = 0, $Timeout)
 	{
-		$Datetime = jf::time () + $Timeout;
+		if($Timeout==Timeout::NEVER)
+			$Datetime = $Timeout;
+		else
+			$Datetime = jf::time () + $Timeout;
 		if ($this->PreparedSaveStatement===null)    
 	        $this->PreparedSaveStatement=jf::db()->prepare( "REPLACE INTO {$this->TablePrefix()}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
 	    $r=$this->PreparedSaveStatement->execute( $Name, serialize ( $Value ), $UserID, $Datetime );

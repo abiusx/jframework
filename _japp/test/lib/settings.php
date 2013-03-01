@@ -20,8 +20,8 @@ class LibSettingsTest extends JDbTest
 	 * @depends testLoadGeneral
 	 */
 	function testSaveGeneralTimeOut()
-	{
-		
+	{	
+		jf::SaveGeneralSetting("some_name", "some_value",jf\Timeout::DAY);
 		$this->assertTrue(jf::SaveGeneralSetting("some_name", "some_value",jf\Timeout::DAY));
 		$this->movetime(jf\Timeout::DAY);
 		jf::$Settings->_Sweep(true);
@@ -31,7 +31,9 @@ class LibSettingsTest extends JDbTest
 		$this->movetime(jf\Timeout::YEAR*10);
 		$this->assertNotNull(jf::LoadGeneralSetting("some_name", 1));
 			
-		$this->movetime(jf\Timeout::NEVER);
+		$this->movetime(0);
+		$this->movetime(jf\Timeout::NEVER-jf::time());
+		$this->assertEquals(jf::time(),PHP_INT_MAX);
 		jf::$Settings->_Sweep(true);
 		$this->assertNull(jf::LoadGeneralSetting("some_name", 1));
 	}
@@ -80,7 +82,9 @@ class LibSettingsTest extends JDbTest
  		$this->movetime(jf\Timeout::YEAR*10);
  		$this->assertNotNull(jf::LoadUserSetting("some_name", 1));
  		
- 		$this->movetime(jf\Timeout::NEVER);
+ 		$this->movetime(0);
+		$this->movetime(jf\Timeout::NEVER-jf::time());
+		$this->assertEquals(jf::time(),PHP_INT_MAX);
  		jf::$Settings->_Sweep(true);
  		$this->assertNull(jf::LoadUserSetting("some_name", 1));
 	}
@@ -139,7 +143,9 @@ class LibSettingsTest extends JDbTest
 		$this->movetime(jf\Timeout::YEAR*10);
 		$this->assertNotNull(jf::LoadSessionSetting("some_name", 1));
 			
-		$this->movetime(jf\Timeout::NEVER);
+		$this->movetime(0);
+		$this->movetime(jf\Timeout::NEVER-jf::time());
+		$this->assertEquals(jf::time(),PHP_INT_MAX);
 		jf::$Settings->_Sweep(true);
 		$this->assertNull(jf::LoadSessionSetting("some_name", 1));
 	}
@@ -152,4 +158,3 @@ class LibSettingsTest extends JDbTest
 		$this->assertTrue(jf::DeleteSessionSetting("some_name"));
 	}
 }
-?>
