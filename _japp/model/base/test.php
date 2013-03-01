@@ -20,7 +20,7 @@ abstract class Test extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Moves time to test timing features
+	 * Moves current time to test timing features
 	 * @param integer $difference
 	 */
 	function movetime($difference)
