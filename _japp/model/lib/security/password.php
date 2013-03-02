@@ -131,7 +131,7 @@ class BasePassword
 
 	}
 	/**
-	 * Generate a secure textual password
+	 * Generate a secure textual password, but because of random generating it does not have exactly same security
 	 * @param float $Security between 0 and 1
 	 */
 	static function Generate($Security=.5)
