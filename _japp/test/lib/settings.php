@@ -33,7 +33,7 @@ class LibSettingsTest extends JDbTest
 			
 		$this->movetime(0);
 		$this->movetime(jf\Timeout::NEVER-jf::time());
-		$this->assertEquals(jf::time(),PHP_INT_MAX);
+		$this->assertEquals(jf::time(),2147483647);
 		jf::$Settings->_Sweep(true);
 		$this->assertNull(jf::LoadGeneralSetting("some_name", 1));
 	}
@@ -84,7 +84,7 @@ class LibSettingsTest extends JDbTest
  		
  		$this->movetime(0);
 		$this->movetime(jf\Timeout::NEVER-jf::time());
-		$this->assertEquals(jf::time(),PHP_INT_MAX);
+		$this->assertEquals(jf::time(),2147483647);
  		jf::$Settings->_Sweep(true);
  		$this->assertNull(jf::LoadUserSetting("some_name", 1));
 	}
@@ -145,7 +145,7 @@ class LibSettingsTest extends JDbTest
 			
 		$this->movetime(0);
 		$this->movetime(jf\Timeout::NEVER-jf::time());
-		$this->assertEquals(jf::time(),PHP_INT_MAX);
+		$this->assertEquals(jf::time(),2147483647);
 		jf::$Settings->_Sweep(true);
 		$this->assertNull(jf::LoadSessionSetting("some_name", 1));
 	}
