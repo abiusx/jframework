@@ -162,7 +162,7 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	 * SHOULD do query timing
 	 * 
 	 * @param string $QueryString        	
-	 * @return jfBaseDatabaseStatement
+	 * @return \mysqli_result
 	 */
 	abstract function query($QueryString);
 	
@@ -279,6 +279,15 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 			foreach ( $TablesQuery as $t )
 				$out [] = $t ['table_name'];
 		return $out;
+	}
+	/**
+	 * alias for ListTables
+	 * @param string $DatabaseName
+	 * @return array
+	 */
+	function GetListTables($DatabaseName)
+	{
+		return	$this->ListTables($DatabaseName);
 	}
 	/**
 	 * Drops all tables of a database
