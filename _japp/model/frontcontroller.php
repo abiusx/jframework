@@ -128,9 +128,9 @@ class BaseFrontController
 				$Parts[count($Parts)-1]=self::$IndexPage;
 		$Request=implode("/",$Parts);
 		
-		jf::run("config/plugins/pre"); //pre hook
+		jf::run("config/hook/pre"); //pre hook
 		$r=$this->_Run($Request);
-		jf::run("config/plugins/post"); //pre hook
+		jf::run("config/hook/post"); //post hook
 		return $r->Result();
 	}
 	
