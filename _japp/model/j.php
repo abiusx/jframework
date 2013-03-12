@@ -52,6 +52,8 @@ class jf
 	/**
 	 * 
 	 * Loads a module into the context
+	 * As a rule of thumb, import should be used on class files and function/constant definition files. 
+	 * For files that run something in no context, use run
 	 * @param string $module
 	 * @param array $scopeVars
 	 * @throws ImportException
@@ -69,8 +71,8 @@ class jf
 	}
 	/**
 	 * Runs a module. The difference with import is that this one uses require instead of require_once
-	 * @param unknown_type $module
-	 * @param unknown_type $scopeVars
+	 * @param string $module
+	 * @param array $scopeVars
 	 */
 	static function run($module,$scopeVars=null)
 	{
