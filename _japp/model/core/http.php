@@ -15,7 +15,7 @@ class HttpRequest
 	 */
 	static function IP()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return "127.0.0.1";
 // 		return (getenv ( "HTTP_X_FORWARDED_FOR" )) ? getenv ( "HTTP_X_FORWARDED_FOR" ) : getenv ( "REMOTE_ADDR" );
 		return $_SERVER['REMOTE_ADDR'];
@@ -27,7 +27,7 @@ class HttpRequest
 	 */
 	static function URL ($QueryString=true)
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return null;
 		if ($QueryString && self::QueryString() )
 			return (self::Protocol()."://".self::ServerName().self::PortReadable().self::RequestURI()."?".self::QueryString());
@@ -49,7 +49,7 @@ class HttpRequest
 	 */
 	static function Port ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return null;
 		return isset($_SERVER['SERVER_PORT'])?$_SERVER['SERVER_PORT']:"";
 	}
@@ -70,7 +70,7 @@ class HttpRequest
 	 */
 	static function Protocol ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return "cli";
 		if (isset($_SERVER['HTTPS']))
 		$x = $_SERVER['HTTPS'];
@@ -88,8 +88,8 @@ class HttpRequest
 	 */
 	static function Path ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
-			return jf::$Request;
+		if (jf::$RunMode->IsCLI())
+		return jf::$Request;
 		$RequestURI=$_SERVER['REQUEST_URI'];
 		if (strpos($RequestURI,"?")!==false)
 			$URIwithoutQuery=substr($RequestURI,0,strpos($RequestURI,"?"));
@@ -108,7 +108,7 @@ class HttpRequest
 	 */
 	static function URI()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return null;
 		if (isset($_SERVER['REDIRECT_URL']))
 		return $_SERVER["REDIRECT_URL"];
@@ -123,7 +123,7 @@ class HttpRequest
 	 */
 	static function Host ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return "localhost";
 		if (isset($_SERVER['HTTP_HOST']))
 			return $_SERVER['HTTP_HOST'];
@@ -145,7 +145,7 @@ class HttpRequest
 	 */
 	static function Method ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return "get";
 		return $_SERVER['REQUEST_METHOD'];
 	}
@@ -156,7 +156,7 @@ class HttpRequest
 	 */
 	static function File ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return null;
 		if (isset($_SERVER['REDIRECT_QUERY_STRING']))
 		{
@@ -176,7 +176,7 @@ class HttpRequest
 	 */
 	static function QueryString ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return http_build_query($_GET);
 		if (isset($_SERVER['REDIRECT_QUERY_STRING']))
 		{
@@ -194,15 +194,17 @@ class HttpRequest
 	 */
 	static function Root ()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return null;
+		elseif (defined("jfembed"))
+			return jf::$BaseRequest;
 		$x=self::Protocol() . "://" . self::Host() . self::PortReadable() . self::Path();
 		return substr($x,0,-1);
 	}
 
 	static function Request()
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			return jf::$Request;
 		return self::RequestFile() . (self::QueryString() ? "?" . self::QueryString() : "");
 	}

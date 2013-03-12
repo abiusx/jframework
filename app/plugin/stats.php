@@ -30,7 +30,7 @@ class StatsPlugin extends JPlugin
 	}
 	function Insert()
 	{
-		if (jf::$RunMode==RunModes::CLI) return false;
+		if (jf::$RunMode->IsCLI()) return false;
 		$res=jf::SQL("INSERT INTO {$this->TablePrefix()}stats (UserID,SessionID,Timestamp,Page,Query,IP,Host,Protocol,UserAgent) VALUES
 			(?,?,?,?,?,?,?,?,?)"
 			,jf::CurrentUser()?:0,jf::$Session->SessionID(),jf::time(),HttpRequest::URI(),HttpRequest::QueryString(),HttpRequest::IP(),

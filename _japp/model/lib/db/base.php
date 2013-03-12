@@ -55,7 +55,7 @@ class trait_DatabaseProfiler {
 	}
 	private function Profile($time)
 	{
-		if (jf::$RunMode == \RunModes::Develop)
+		if (jf::$RunMode->IsDevelop())
 		{
 			$hash = dechex ( crc32 ( $this->_queryString ) );
 			$record = array ('averageTime' => $time, 'count' => 1 ,"time" => $time, "query" => $this->_queryString

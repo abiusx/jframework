@@ -14,6 +14,12 @@ if (isset($argc) && $argc>1) //SAPI
 		$Request=substr($Request, 0,strpos($Request,"?"));
 	}
 }
+if (defined("jfembed")) //embedded mode, this constant holds the jframework url
+{
+	$Request=constant("jfembed");
+	if (substr($Request,-1)=="/")
+		$Request=substr($Request,0,-1);
+}
 
 if ($Request!==null)
 {

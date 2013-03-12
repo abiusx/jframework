@@ -19,11 +19,11 @@ const jf_Application_Title="jFramework Website" ; //title of your application
  * Deploy, Develop or Command Line. Provide necessary logic for it to determine correctly
  */
 if (HttpRequest::Host()=="localhost")
-	jf::$RunMode=RunModes::Develop;
+	jf::$RunMode->Add(RunModes::Develop);
 elseif (strpos(HttpRequest::Host(),"jframework.info")!==false) #TODO:replace this with your site
-	jf::$RunMode=RunModes::Deploy;
+	jf::$RunMode->Add(RunModes::Develop);
 elseif (php_sapi_name()=="cli")
-	jf::$RunMode=RunModes::CLI;
+	jf::$RunMode->Add(RunModes::CLI);
 else 
 	throw new Exception("No running state determined, please provide rules in app/config/application.php.");
 
@@ -43,12 +43,12 @@ define ( "SiteRoot", HttpRequest::Root () );
  * You can also use "no database-setup" if you do not need jFramework libraries and want a semi-static 
  * web application, in that case, comment or remove the database username definition
  */
-if (jf::$RunMode==RunModes::Develop or jf::$RunMode==RunModes::CLI)
+if (jf::$RunMode->IsDevelop() or jf::$RunMode->IsCLI())
 {
 	\jf\DatabaseManager::$TablePrefix="jf_";
  	\jf\DatabaseManager::AddConnection(new \jf\DatabaseSetting("mysqli", "jf4", "root", ""));
 }
-elseif (jf::$RunMode==RunModes::Deploy)
+elseif (jf::$RunMode->IsDeploy())
 {
  	\jf\DatabaseManager::AddConnection(new \jf\DatabaseSetting("mysqli", "dbname", "username", "password"));
 }
@@ -62,7 +62,7 @@ elseif (jf::$RunMode==RunModes::Deploy)
  */
 	jf\ErrorHandler::$Enabled=true; //Enables jFramework's built-in error handler
 
-if (jf::$RunMode==RunModes::Develop)
+if (jf::$RunMode->IsDevelop())
 	jf\ErrorHandler::$PresentErrors=true;
 else
 	jf\ErrorHandler::$PresentErrors=false;

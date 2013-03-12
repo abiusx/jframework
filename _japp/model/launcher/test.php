@@ -25,7 +25,7 @@ class TestLauncher extends BaseLauncher
 	function Launch()
 	{
 		//tests are only allowed in development mode
-		if (!jf::$RunMode==\RunModes::Develop)
+		if (jf::$RunMode->IsDevelop())
 			return false;
 		
 		$Parts=explode("/",$this->Request);
@@ -81,7 +81,7 @@ class TestLauncher extends BaseLauncher
 	 */
 	function OutputResult($Result,$Profiler)
 	{
-		if (jf::$RunMode==\RunModes::CLI)
+		if (jf::$RunMode->IsCLI())
 			$file="cli";
 		else
 			$file='web';

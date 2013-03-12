@@ -91,17 +91,21 @@ class BaseFrontController
 	 */
 	public function Init($Request)
 	{
-		jf::$Request=$Request;
+		jf::$BaseRequest=$Request;
 
 		$this->LoadCoreModules (); //core modules
+
+		if (defined("jfembed"))
+			jf::$RunMode->Add(\RunModes::Embed);
 
 		$this->LoadApplicationConfiguration ();
 
 		$this->LoadLibraries ();
 
 		$this->Started = true;
-		
-		return $this->Run ();
+
+		if (!jf::$RunMode->IsEmbed())
+			return $this->Run ();
 
 	}
 	
@@ -117,7 +121,7 @@ class BaseFrontController
 			return false;
 		}
 		if ($Request === null)
-			$Request = jf::$Request;
+			$Request = jf::$BaseRequest;
 		//fixing request by adding index page
 		$Parts=explode("/",$Request);
 		if ($Parts[count($Parts)-1]=="")

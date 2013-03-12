@@ -1,3 +1,4 @@
+<?php if (jf::$RunMode->IsEmbed()) return;?>
 <div id='Tracker' class='Footer'>
 <?php
 $x=jf::$Profiler->Timer();

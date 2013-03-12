@@ -31,7 +31,7 @@ function print_($var)
 		$data="NULL";
 	else
 		$data=print_r($var,true);
-	if (jf::$RunMode==RunModes::CLI)
+	if (jf::$RunMode->IsCLI())
 		echo $data."\n";
 	else
 		echo nl2br(str_replace(" ","&nbsp;",htmlspecialchars($data)))."<br/>";

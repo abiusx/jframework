@@ -10,6 +10,15 @@ class ImportException extends \Exception
  */
 class jf 
 {
+	/**
+	 * Holds the request used to init jf. mostly the same with request unless on embed mode
+	 * @var string
+	 */
+	static $BaseRequest=null;
+	/**
+	 * Holds the request that is being run
+	 * @var string
+	 */
 	static $Request=null;
 	
 	/**
@@ -146,7 +155,8 @@ class jf
     
     
     /**
-     * 
+     * Holds the current running modes of the application as flags. A mixture of RunModes:: constants
+     * Used to detect modes, e.g command line, development, embedded, etc. 
      * @var RunModes
      */
     public static $RunMode;
