@@ -5,12 +5,17 @@ class AutoloadRuleException extends \Exception {}
 /**
  * Handles spl_autoload in jframework
  * @author abiusx
- * @version 1.0
+ * @version 1.1
  * 
  */
 class Autoload
 {
-	private static $List=array(); 
+	/**
+	 * Holds a list where keys are classnames and values are files
+	 * @var array
+	 */
+	private static $List=array();
+	 
 	function __construct()
 	{
 		throw new Exception("Autoload class is static and should not be instantiated.");
@@ -27,7 +32,7 @@ class Autoload
 	/**
 	 * this function adds rules for autoloading of core jframework modules
 	 */
-	static function AddCoreModules()
+	private static function AddCoreModules()
 	{
 		$Array=array(
 				"Model"=>"model/base/model",
@@ -95,6 +100,7 @@ class Autoload
 		}
 		else 
 			$Prefix="";
+		//separates words in a camelCase word (also CamelCase)
 		preg_match_all('/((?:^|[A-Z])[a-z]+)/',$Classname,$matches);
 		if (!is_array($matches[0]))
 			return false;
@@ -123,18 +129,29 @@ class Autoload
 		
 	}
 	/**
-	 * Handles autoloading of a class file. Automatically used by PHP SPL
+	 * Handles autoloading of a class file. Automatically used by PHP SPL.
+	 * If this fails and class is still needed, and error is thrown so calling it with a string is safe.
 	 * @param string $Classname
 	 * @return boolean success 
 	 */
 	static function Autoload($Classname)
 	{
-		if (!array_key_exists($Classname,self::$List))
-			if (!self::CoreAutoload($Classname))
-				return false;#throw new AutoloadException($Classname);
-			else
+		if (!array_key_exists($Classname,self::$List)) 	//no direct rules
+		{
+			if (!self::CoreAutoload($Classname))		//no core module rules
+			{
+				foreach (self::$Handlers as $callback)	//try all callback handlers
+				{
+					if (call_user_func_array($callback,array($Classname)))
+						return true;					//one loaded the module, good
+				}
+				return false;
+			}
+			else 										//its a core module, and loaded.
 				return true;
+		}
 		require_once (self::$List[$Classname]);
+		return true;									//if we got to this line, its loaded!
 	}
 	
 	/**
@@ -150,7 +167,20 @@ class Autoload
 			throw new AutoloadRuleException("Invalid autoload rule added: {$File} set for autoloading of class '{$Classname}' does not exist.");
 		self::$List[$Classname]=$File;
 	} 
-	
+	/**
+	 * This is a convenient wrapper for AddRule, which calls moduleFile on the module string and then adds the file to rules.
+	 * @param string $Classname
+	 * @param string $Module e.g model/folder/file
+	 * @throws AutoloadRuleException
+	 */
+	static function AddModule($Classname,$Module)
+	{
+		$File=jf::moduleFile($Module);
+		if (!file_exists($File))
+			throw new AutoloadRuleException("Invalid autoload rule added: {$File} set for autoloading of class '{$Classname}' does not exist.");
+		self::$List[$Classname]=$File;
+		
+	}
 	/**
 	 * Adds autoload rules in bulk, array keys are class names and array values are files to be included
 	 * @param array $RuleArray
@@ -161,6 +191,41 @@ class Autoload
 			self::AddRule($Classname, $File);
 		
 	}
+	/**
+	 * An array of callbacks to handle autoloads
+	 * if one of them returns true, autoload is successful and is stopped, otherwise next one is processed
+	 * last one attached is most priority
+	 * @var string $callback
+	 */
+	private static $Handlers=array();
+
+	/**
+	 * Add an autoload handler callback. this is called whenever an autoload is required. last added handler has most priority
+	 * NOTE: if the callback already exists in handlers, it is just moved to most priority
+	 * @param string $callback a function getting classname as parameter which returns true when found and loaded the class, and false otherwise
+	 */
+	static function AddHandler($callback)
+	{
+		if (array_search($callback,self::$Handlers))
+			self::RemoveHandler($callback);
+		array_unshift(self::$Handlers,$callback);
+	}
+
+	/**
+	 * Removes a previously added autoload handler
+	 * @param string $callback
+	 */
+	static function RemoveHandler($callback)
+	{
+		if ($key=array_search($callback,self::$Handlers))
+		{
+			unset(self::$Handlers[$key]);
+			return true;
+		}
+		return false;
+			
+	}
+	
 	/**
 	 * Remove a single autoload rule
 	 * @param string $Classname
