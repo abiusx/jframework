@@ -25,9 +25,8 @@ class TestLauncher extends BaseLauncher
 	function Launch()
 	{
 		//tests are only allowed in development mode
-		if (jf::$RunMode->IsDevelop())
+		if (!jf::$RunMode->IsDevelop())
 			return false;
-		
 		$Parts=explode("/",$this->Request);
 		$Type=array_shift($Parts);
 		assert($Type=="test");
