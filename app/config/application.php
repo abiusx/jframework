@@ -60,7 +60,8 @@ elseif (jf::$RunMode->IsDeploy())
  * so keep in mind to set this to false when releasing your software.
  * You can view errors in logs anytime.
  */
-	jf\ErrorHandler::$Enabled=true; //Enables jFramework's built-in error handler
+jf\ErrorHandler::$Enabled=true; //Enables jFramework's built-in error handler
+jf::$ErrorHandler->SetErrorHandler();
 
 if (jf::$RunMode->IsDevelop())
 	jf\ErrorHandler::$PresentErrors=true;
