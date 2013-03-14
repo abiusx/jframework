@@ -33,6 +33,7 @@ if ($Request!==null)
 	} // make jf static class known both in jf namespace
 	// and in public
 	jf::import ( "jf/model/frontcontroller" ); // front controller module
+	global $jframework;
 	$jframework = \jf\FrontController::GetSingleton ();
 	try
 	{
