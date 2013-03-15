@@ -29,7 +29,8 @@ class View extends Model
 		
 			if (file_exists ( $this->ModuleFile($templateModule) ))
 			{
-				return jf::run($templateModule,array("Append"=>$this->HeadDataAppend,"Prepend"=>$this->HeadDataPrepend));
+				return include $this->moduleFile($templateModule);
+				//return jf::run($templateModule,array("Append"=>$this->HeadDataAppend,"Prepend"=>$this->HeadDataPrepend));
 			}
 		}
 		return false;
@@ -71,25 +72,31 @@ class View extends Model
 		return ob_get_clean ();
 	}
 
+	/**
+	 * Holds the view module after the call to present
+	 * @var string
+	 */
 	private $ViewModule;
 	
 	/**
-	 * These variables hold extra data that are appended and prepended to the head template, for dynamic titles, etc.
+	 * This variable holds extra data that are appended to the head template, for adding scripts and stylesheets, etc.
 	 * @var array
 	 */
-	protected $HeadDataAppend=array();
-	protected $HeadDataPrepend=array();
+	protected $HeadData=array();
 	/**
 	 * Add something to template header
 	 * @param string $DataString
-	 * @param boolea $Append if true, appends to head, otherwise adds at beginning
 	 */
-	function AddToHead($DataString,$Append=true)
+	function AddToHead($DataString)
 	{
-		if ($Append)
-			$this->HeadDataAppend[]=$DataString;
-		else
-			$this->HeadDataPrepend[]=$DataString;
+		$this->HeadData[]=$DataString;
+	}
+	/**
+	 * Returns the head data of the view
+	 */
+	function HeadData()
+	{
+		return implode("\n",$this->HeadData);
 	}
 	
 	/**
@@ -136,7 +143,33 @@ class View extends Model
 		include $this->ModuleFile($NewModule);
 	}
 	
-	
+	/**
+	 * Title of the HTML page
+	 * @var string
+	 */
+	private $Title;
+	/**
+	 * Sets the page title
+	 * @param string $title
+	 */
+	function SetTitle($title)
+	{
+		if (jf::$RunMode->IsEmbed()) //globalizing jf_title variable which holds the title of jframework page
+		{
+			global $jf_title;
+			$jf_title=$title;
+		}
+			  
+		$this->Title=$title;
+	}
+	/**
+	 * Returns the current title of the page
+	 * @return string
+	 */
+	function Title()
+	{
+		return $this->Title;
+	}
 }
 
 ?>

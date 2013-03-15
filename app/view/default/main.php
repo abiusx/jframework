@@ -1,4 +1,4 @@
 <?php
-$this->AddToHead("<title>Hello</title>",false);
+$this->SetTitle("jframework test page");
 ?>
 Yo

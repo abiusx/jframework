@@ -1,18 +1,6 @@
+<div dir='ltr'>
 <?php
-if (function_exists("query_posts"))
-{
-	query_posts("post_type=any");
-	$n=0;
-	while (have_posts())
-	{
-		echo $n++.BR;
-		the_post();
-		var_dump($post->post_content);	
-//		var_dump($post);
-		the_title();
-		echo BR.BR;
-	}
-}
+$this->SetTitle("jframework features");
 ?>
 <title>jFramework Features</title>
 <h1>jFramework Features</h1>
@@ -68,3 +56,4 @@ ordered in a logical breadthing manner.</li>
 And a lot more... For a detailed descriptiong of the above features, visit <a href='http://wiki.jframework.info'>jFramework Wiki</a>.
 
 </p>
+</div>
