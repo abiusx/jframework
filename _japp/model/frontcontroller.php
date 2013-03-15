@@ -36,7 +36,7 @@ class BaseFrontController
 		jf::import ("jf/model/core/autoload");
 		Autoload::Register();
 				
-		jf::import ( "jf/config/constants" );
+		jf::import ( "jf/config/main" );
 
 		
 		jf::$ErrorHandler = new ErrorHandler ();
