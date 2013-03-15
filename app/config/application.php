@@ -57,10 +57,13 @@ elseif (jf::$RunMode->IsDeploy())
  * 
  * jFramework has an advanced error handler built-in. 
  * Errors should not be presented to the end user on a release environment,
- * so keep in mind to set this to false when releasing your software.
- * You can view errors in logs anytime.
+ * this is automatically handled by presentErrors, which toggles between logging
+ * and displaying.
  */
-jf\ErrorHandler::$Enabled=true; //Enables jFramework's built-in error handler
+if (jf::$RunMode->IsCLI() or jf::$RunMode->IsEmbed())
+	jf\ErrorHandler::$Enabled=false; 	//disable it if embedded or CLI because another system is handling it.
+else
+	jf\ErrorHandler::$Enabled=true; 	//Enables jFramework's built-in error handler
 jf::$ErrorHandler->SetErrorHandler();
 
 if (jf::$RunMode->IsDevelop())
