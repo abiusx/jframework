@@ -199,7 +199,7 @@ class HttpRequest
 		elseif (defined("jfembed"))
 			return jf::$BaseRequest;
 		$x=self::Protocol() . "://" . self::Host() . self::PortReadable() . self::Path();
-		return substr($x,0,-1);
+		return substr($x,0,-strlen(jf::$BaseRequest)-1);
 	}
 
 	static function Request()
