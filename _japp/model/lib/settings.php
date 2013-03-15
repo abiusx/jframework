@@ -45,7 +45,7 @@ class SettingManager extends Model
 			$Datetime = $Timeout;
 		else
 			$Datetime = jf::time () + $Timeout;
-		if ($this->PreparedSaveStatement[$this->dbIndex()]===null)    
+		if (!isset($this->PreparedSaveStatement[$this->dbIndex()]) or $this->PreparedSaveStatement[$this->dbIndex()]===null)    
 	        $this->PreparedSaveStatement[$this->dbIndex()]=jf::db()->prepare( "REPLACE INTO {$this->TablePrefix()}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
 	    $r=$this->PreparedSaveStatement[$this->dbIndex()]->execute( $Name, serialize ( $Value ), $UserID, $Datetime );
 		$this->_Sweep ();
@@ -59,7 +59,7 @@ class SettingManager extends Model
 	 */
 	protected function _Delete($Name, $UserID = 0)
 	{
-	    if ($this->PreparedDeleteStatement[$this->dbIndex()]===null)    
+	    if (!isset($this->PreparedDeleteStatement[$this->dbIndex()]) or $this->PreparedDeleteStatement[$this->dbIndex()]===null)    
 	        $this->PreparedDeleteStatement[$this->dbIndex()]=jf::db()->prepare( "DELETE FROM {$this->TablePrefix()}options  WHERE UserID=? AND Name=?");
 	    $r=$this->PreparedDeleteStatement[$this->dbIndex()]->execute($UserID, $Name);
 	    return $r>=1;
@@ -72,7 +72,7 @@ class SettingManager extends Model
 	{
 		if(!$force) if (rand ( 0, 1000 ) / 1000.0 > .1)
 			return; //percentage of SweepRatio, don't always do this when called
-	    if ($this->PreparedSweepStatement[$this->dbIndex()]===null)    
+	    if (!isset($this->PreparedSweepStatement[$this->dbIndex()]) or $this->PreparedSweepStatement[$this->dbIndex()]===null)    
 	        $this->PreparedSweepStatement[$this->dbIndex()]=jf::db()->prepare("DELETE FROM {$this->TablePrefix()}options WHERE Expiration<=?");
 	    $this->PreparedSweepStatement[$this->dbIndex()]->execute(jf::time());
 	}
@@ -87,7 +87,7 @@ class SettingManager extends Model
 	private function _Load($Name, $UserID=0)
 	{
 		$this->_Sweep ();
-		if ($this->PreparedLoadStatement[$this->dbIndex()]===null)
+		if (!isset($this->PreparedLoadStatement[$this->dbIndex()]) or $this->PreparedLoadStatement[$this->dbIndex()]===null)
 			$this->PreparedLoadStatement[$this->dbIndex()]=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE Name=? AND UserID=?");
 		$this->PreparedLoadStatement[$this->dbIndex()]->execute($Name, $UserID);
 		$Res=$this->PreparedLoadStatement[$this->dbIndex()]->fetchAll();
