@@ -11,9 +11,8 @@ class LibSettingsTest extends JDbTest
 	 */
 	function testLoadGeneral()
 	{
-		jf::SaveGeneralSetting("setting1", "value_of_setting1");
-		$this->assertEquals("value_of_setting1",jf::LoadGeneralSetting("setting1"));
-		
+		jf::SaveGeneralSetting("some_name", "some_value");
+		$this->assertEquals(jf::LoadGeneralSetting("some_name"),"some_value");
 		jf::SaveGeneralSetting("some_name", array("a","b","c"));
 		$this->assertEquals(jf::LoadGeneralSetting("some_name"),array("a","b","c"));
 	}
