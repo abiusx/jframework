@@ -65,7 +65,10 @@ class DatabaseManager extends Model
 		}
 				
 	}
-	
+	/**
+	 * Holds the index of default database, used by db and SQL functions of jf:: accessor
+	 * @var integer
+	 */
 	static $DefaultIndex=0;
 	/**
 	 * Returns a database connection
