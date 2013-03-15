@@ -21,7 +21,7 @@ const jf_Application_Title="jFramework Website" ; //title of your application
 if (HttpRequest::Host()=="localhost")
 	jf::$RunMode->Add(RunModes::Develop);
 elseif (strpos(HttpRequest::Host(),"jframework.info")!==false) #TODO:replace this with your site
-	jf::$RunMode->Add(RunModes::Develop);
+	jf::$RunMode->Add(RunModes::Deploy);
 elseif (php_sapi_name()=="cli")
 	jf::$RunMode->Add(RunModes::CLI);
 else 
