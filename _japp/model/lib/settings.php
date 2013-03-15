@@ -20,11 +20,17 @@ class Timeout {
 }
 class SettingManager extends Model
 {
-	private $PreparedLoadStatement=null;
-	private $PreparedSaveStatement=null;
-	private $PreparedDeleteStatement=null;
-	private $PreparedSweepStatement=null;
 	
+	
+	private $PreparedLoadStatement=array();
+	private $PreparedSaveStatement=array();
+	private $PreparedDeleteStatement=array();
+	private $PreparedSweepStatement=array();
+	
+	private function dbIndex()
+	{
+		return \jf\DatabaseManager::$DefaultIndex;
+	}
 	/**
 	 * internal function use by other services
 	 * @param string $Name
@@ -39,9 +45,9 @@ class SettingManager extends Model
 			$Datetime = $Timeout;
 		else
 			$Datetime = jf::time () + $Timeout;
-		if ($this->PreparedSaveStatement===null)    
-	        $this->PreparedSaveStatement=jf::db()->prepare( "REPLACE INTO {$this->TablePrefix()}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
-	    $r=$this->PreparedSaveStatement->execute( $Name, serialize ( $Value ), $UserID, $Datetime );
+		if ($this->PreparedSaveStatement[$this->dbIndex()]===null)    
+	        $this->PreparedSaveStatement[$this->dbIndex()]=jf::db()->prepare( "REPLACE INTO {$this->TablePrefix()}options (Name,Value, UserID, Expiration) VALUES (?,?,?,?);");
+	    $r=$this->PreparedSaveStatement[$this->dbIndex()]->execute( $Name, serialize ( $Value ), $UserID, $Datetime );
 		$this->_Sweep ();
 		return $r>=1;
 	}
@@ -53,9 +59,9 @@ class SettingManager extends Model
 	 */
 	protected function _Delete($Name, $UserID = 0)
 	{
-	    if ($this->PreparedDeleteStatement===null)    
-	        $this->PreparedDeleteStatement=jf::db()->prepare( "DELETE FROM {$this->TablePrefix()}options  WHERE UserID=? AND Name=?");
-	    $r=$this->PreparedDeleteStatement->execute($UserID, $Name);
+	    if ($this->PreparedDeleteStatement[$this->dbIndex()]===null)    
+	        $this->PreparedDeleteStatement[$this->dbIndex()]=jf::db()->prepare( "DELETE FROM {$this->TablePrefix()}options  WHERE UserID=? AND Name=?");
+	    $r=$this->PreparedDeleteStatement[$this->dbIndex()]->execute($UserID, $Name);
 	    return $r>=1;
 	}
 	/**
@@ -66,9 +72,9 @@ class SettingManager extends Model
 	{
 		if(!$force) if (rand ( 0, 1000 ) / 1000.0 > .1)
 			return; //percentage of SweepRatio, don't always do this when called
-	    if ($this->PreparedSweepStatement===null)    
-	        $this->PreparedSweepStatement=jf::db()->prepare("DELETE FROM {$this->TablePrefix()}options WHERE Expiration<=?");
-	    $this->PreparedSweepStatement->execute(jf::time());
+	    if ($this->PreparedSweepStatement[$this->dbIndex()]===null)    
+	        $this->PreparedSweepStatement[$this->dbIndex()]=jf::db()->prepare("DELETE FROM {$this->TablePrefix()}options WHERE Expiration<=?");
+	    $this->PreparedSweepStatement[$this->dbIndex()]->execute(jf::time());
 	}
 	/**
 	 * This function loads a setting
@@ -78,14 +84,14 @@ class SettingManager extends Model
 	 * @return mixed loaded item
 	 * 
 	 */
-	
 	private function _Load($Name, $UserID=0)
 	{
 		$this->_Sweep ();
-		if ($this->PreparedLoadStatement===null)
-			$this->PreparedLoadStatement=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE Name=? AND UserID=?");
-		$this->PreparedLoadStatement->execute($Name, $UserID);
-		$Res=$this->PreparedLoadStatement->fetchAll();
+		if ($this->PreparedLoadStatement[$this->dbIndex()]===null)
+			$this->PreparedLoadStatement[$this->dbIndex()]=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE Name=? AND UserID=?");
+		$this->PreparedLoadStatement[$this->dbIndex()]->execute($Name, $UserID);
+		$Res=$this->PreparedLoadStatement[$this->dbIndex()]->fetchAll();
+
 		if($Res===null)
 			return null;
 		else
