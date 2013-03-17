@@ -188,9 +188,8 @@ class DB_Statement_mysqli extends BaseDatabaseStatement
 		$this->DB->QueryStart ($args);
 		$r=$this->Statement->execute ();
 		$this->DB->QueryEnd ();
-		//$this->Statement->store_result();
+		//$this->Statement->store_result();	
 		return $r;
-
 	}
 
 	function rowCount()

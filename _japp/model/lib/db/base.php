@@ -98,7 +98,14 @@ class trait_DatabaseProfiler {
 		$this->QueryTime += $time;
 		$this->QueryCount ++;
 	}
-	
+	/**
+	 * increase number of queries excuted with this instance
+	 * @param unknown_type $val
+	 */
+	public function increaseQueryCount()
+	{
+		$this->QueryCount+1;
+	}
 	/**
 	 * returns number of queries executed with this instance
 	 *
