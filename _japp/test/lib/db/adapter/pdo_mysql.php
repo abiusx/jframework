@@ -1,12 +1,12 @@
 <?php
 jf::import("jf/test/lib/db/adapter/base");
-class LibDbMysqliTest extends LibDbBaseTest
+class LibDbPdoMysqlTest extends LibDbBaseTest
 {
 	public static function setUpBeforeClass()
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$setting->Adapter="pdo_mysql";
+		$setting->Adapter="mysqli";
 		\jf\DatabaseManager::AddConnection($setting);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
@@ -17,13 +17,13 @@ class LibDbMysqliTest extends LibDbBaseTest
 	}
 }
 
-class LibDbStatementMysqliTest extends LibDbStatementBaseTest
+class LibJfDbalPdoMysqlStatementTest extends LibDbStatementBaseTest
 {
 	public static function setUpBeforeClass()
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$setting->Adapter="pdo_mysql";
+		$setting->Adapter="mysqli";
 		\jf\DatabaseManager::AddConnection($setting);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
@@ -31,5 +31,5 @@ class LibDbStatementMysqliTest extends LibDbStatementBaseTest
 	{
 		parent::tearDownAfterClass();
 		\jf\DatabaseManager::$DefaultIndex=0;
-	}
+		}
 }
