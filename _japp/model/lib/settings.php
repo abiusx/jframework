@@ -91,7 +91,6 @@ class SettingManager extends Model
 			$this->PreparedLoadStatement[$this->dbIndex()]=jf::db()->prepare("SELECT * FROM {$this->TablePrefix()}options WHERE Name=? AND UserID=?");
 		$this->PreparedLoadStatement[$this->dbIndex()]->execute($Name, $UserID);
 		$Res=$this->PreparedLoadStatement[$this->dbIndex()]->fetchAll();
-
 		if($Res===null)
 			return null;
 		else
