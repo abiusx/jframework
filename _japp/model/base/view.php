@@ -90,6 +90,11 @@ class View extends Model
 	function AddToHead($DataString)
 	{
 		$this->HeadData[]=$DataString;
+		if (jf::$RunMode->IsEmbed()) //globalizing jf_title variable which holds the title of jframework page
+		{
+			global $jf_head;
+			$jf_head=implode("\n",$this->HeadData);
+		}
 	}
 	/**
 	 * Returns the head data of the view
