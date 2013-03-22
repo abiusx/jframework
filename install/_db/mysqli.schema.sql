@@ -30,11 +30,6 @@ CREATE TABLE IF NOT EXISTS `PREFIX_logs` (
   PRIMARY KEY  (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
---
--- Dumping data for table `PREFIX_logs`
---
-
-
 -- --------------------------------------------------------
 
 --
@@ -68,11 +63,6 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_permissions` (
   KEY `Rght` (`Rght`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
---
--- Dumping data for table `PREFIX_rbac_permissions`
---
-
-
 -- --------------------------------------------------------
 
 --
@@ -85,11 +75,6 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_rolepermissions` (
   `AssignmentDate` int(11) NOT NULL,
   PRIMARY KEY  (`RoleID`,`PermissionID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-
---
--- Dumping data for table `PREFIX_rbac_rolepermissions`
---
-
 
 -- --------------------------------------------------------
 
@@ -109,7 +94,6 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_roles` (
   KEY `Rght` (`Rght`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-
 -- --------------------------------------------------------
 
 --
@@ -122,10 +106,6 @@ CREATE TABLE IF NOT EXISTS `PREFIX_rbac_userroles` (
   `AssignmentDate` int(11) NOT NULL,
   PRIMARY KEY  (`UserID`,`RoleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-
---
--- Dumping data for table `PREFIX_rbac_userroles`
---
 
 -- --------------------------------------------------------
 
@@ -163,10 +143,11 @@ CREATE TABLE IF NOT EXISTS `PREFIX_users` (
   UNIQUE KEY `Username` (`Username`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
---
--- Dumping data for table `PREFIX_users`
---
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `PREFIX_xusers`
+--
 
 CREATE TABLE IF NOT EXISTS `PREFIX_xuser` (
   `ID` int(11) NOT NULL,
