@@ -27,6 +27,7 @@ class DB_pdo_mysql extends BaseDatabase
 		{
 			$this->DB = new \PDO ( "mysql:dbname={$db->DatabaseName};host={$db->Host};",$db->Username,$db->Password);
 			$this->DB->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_SILENT);
+			$this->Initialize($db->DatabaseName);
 		}
 		else
 			$this->DB = null; //this is mandatory for no-database jFramework
