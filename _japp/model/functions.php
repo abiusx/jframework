@@ -29,6 +29,10 @@ function print_($var)
 {
 	if ($var===null)
 		$data="NULL";
+	elseif ($var===false)
+		$data="False";
+	elseif ($var===true)
+		$data="True";
 	else
 		$data=print_r($var,true);
 	if (jf::$RunMode->IsCLI())
