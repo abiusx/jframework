@@ -100,7 +100,8 @@ class SessionManager extends Model
 	 */
 	function CreateSession()
 	{
-		return jf::SQL ( "INSERT INTO {$this->TablePrefix()}session (UserID,SessionID,LoginDate,LastAccess,IP) VALUES (?,?,?,?,?)", 0, $this->SessionID (), jf::time (), jf::time (), HttpRequest::IP() );
+		return jf::SQL ( "INSERT INTO {$this->TablePrefix()}session (UserID,SessionID,LoginDate,LastAccess,IP,CurrentRequest) VALUES (?,?,?,?,?,?)",
+											 0, $this->SessionID (), jf::time (), jf::time (), HttpRequest::IP(),"" );
 	}
 
 	/**

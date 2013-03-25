@@ -7,7 +7,7 @@ namespace jf;
  * @author abiusx
  * @version 3.00
  */
-class DBAL_pdo_sqlite extends BaseDatabase
+class DB_pdo_sqlite extends BaseDatabase
 {
 	/**
 	 * the actual DB object
@@ -21,14 +21,15 @@ class DBAL_pdo_sqlite extends BaseDatabase
 		if ($db->Username and $db->Username != "")
 		{
 			$File = "{$db->DatabaseName}";
-			$this->DB = new \PDO ( "sqlite:" . $File );
-			$this->DB->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+			$this->DB = new \PDO ( "sqlite:" . $File.".db" );
+			$this->DB->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
+			$this->Initialize($db->DatabaseName);
 // 			if (! is_writable ( $File ) && (! defined ( "jf_DB_ReadOnly" ) or ! constant ( "jf_DB_ReadOnly" ))) trigger_error ( "PDO_SQLite : database file not writable. Set read-only or grant write access to database file." );
 // 			if (! is_writable(constant ( "jf_DB_SQLite_Folder" )) && (!defined( "jf_DB_ReadOnly" ) or ! constant ( "jf_DB_ReadOnly" ))) trigger_error("PDO_SQLite : the folder containing the database should have full permissions, or set connection to read-only.");
 		}
 		else
 			$this->DB = null; //this is mandatory for no-database jFramework
-		$this->m_databasename = $db->Database;
+		$this->m_databasename = $db->DatabaseName;
 	}
 
 	function __destruct()
@@ -41,7 +42,7 @@ class DBAL_pdo_sqlite extends BaseDatabase
 		return $this->DB->lastInsertId ();
 	}
 
-	function quote()
+	function quote($Param)
 	{
 		$args = func_get_args ();
 		if (count($args)>1)
@@ -50,7 +51,8 @@ class DBAL_pdo_sqlite extends BaseDatabase
 				if ($x = $this->DB->quote ( $arg )) $arg = $x;
 		}
 		else
-			return $this->DB->quote($args[0]);	}
+			return $this->DB->quote($args[0]);	
+	}
 
 	function query($QueryString)
 	{
@@ -70,6 +72,34 @@ class DBAL_pdo_sqlite extends BaseDatabase
 	{
 		return new jfDBAL_PDO_SQLite_Statement($this,$Query);
 	}
+	
+	protected function ListTables($DatabaseName)
+	{
+		$TablesQuery = $this->SQL ( "SELECT name FROM sqlite_master WHERE type = 'table'" );
+		$out = array ();
+		if (is_array ( $TablesQuery ))
+			foreach ( $TablesQuery as $t )
+				$out [] = $t ['name'];
+		return $out;
+	}
+	
+	protected function DropAllTables($DatabaseName)
+	{
+		$tables = $this->ListTables ( $DatabaseName );
+		array_shift($tables);
+		if (is_array ( $tables ))
+			foreach ( $tables as $tableName )
+			$this->SQL ( "DROP TABLE " . $tableName );
+	}
+	
+	protected function TruncateAllTables($DatabaseName)
+	{
+		$tables = $this->ListTables ( $DatabaseName );
+		array_shift($tables);
+		if (is_array ( $tables ))
+			foreach ( $tables as $tableName )
+			$this->SQL ( "DELETE FROM " . $tableName );
+	}
 }
 
 /**
@@ -86,8 +116,18 @@ class jfDBAL_PDO_SQLite_Statement extends BaseDatabaseStatement
 	 * @var jfDBAL_PDO_SQLite
 	 */
 	private $DBAL;
+	/**
+	 * used for debugging
+	 * @var string
+	 */
+	private $_query;
+	/**
+	 * used for debugging
+	 * @var array
+	 */
+	private $_params;
 
-	function __construct(jfDBAL_PDO_SQLite $DB,$Query)
+	function __construct(DB_pdo_sqlite $DB,$Query)
 	{
 		$this->DBAL = $DB;
 		$this->Statement=$DB->DB->prepare($Query);
@@ -124,18 +164,18 @@ class jfDBAL_PDO_SQLite_Statement extends BaseDatabaseStatement
 	 */
 	function execute()
 	{
-		if (func_num_args () >= 1)
+		if (func_num_args() >= 1)
 		{
-			$args = func_get_args ();
+			$args = func_get_args();
 			call_user_func_array ( array (
 				$this, "Bind" 
 			), $args );
 		}
-		$this->DBAL->QueryCount += 1;
-		
-		$this->DBAL->QueryTimeIn ();
-		$r=$this->Statement->execute ();
-		$this->DBAL->QueryTimeOut ();
+		$this->DBAL->increaseQueryCount();
+		$args=array_merge(array($this->_query),func_get_args());
+		$this->DBAL->QueryStart($args);
+		$r=$this->Statement->execute();
+		$this->DBAL->QueryEnd();
 		return $r;
 	
 	}
@@ -147,7 +187,7 @@ class jfDBAL_PDO_SQLite_Statement extends BaseDatabaseStatement
 
 	function fetch()
 	{
-		return $this->Statement->fetch ( PDO::FETCH_ASSOC );
+		return $this->Statement->fetch ( \PDO::FETCH_ASSOC );
 	}
 }
 ?>

@@ -232,7 +232,7 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 			return $statement->rowCount ();
 		elseif ($type == "SELECT")
 		{
-			return $statement->fetchAll ();
+			return $statement->fetchAll();
 		}
 		else
 			return null;
@@ -393,7 +393,7 @@ BaseDatabaseStatement
 	{
 		$out = array ();
 		while ( $r = $this->fetch () )
-			$out [] = $r;
+			$out [] = $r;			
 		return $out;
 	}
 	
