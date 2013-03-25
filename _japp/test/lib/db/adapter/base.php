@@ -16,11 +16,7 @@ abstract class LibDbBaseTest extends JDbTest
 		$second=$insDb->LastID();
 		$this->assertEquals($second,$first+1);
 	}
-	function testQuote()
-	{
-		$insDb=jf::db();
-		$this->assertEquals("\'quote-text\'",$insDb->quote("'quote-text'"));
-	}
+	abstract function testQuote();
 	function testQuery()
 	{
 		$insDb=jf::db();
@@ -44,33 +40,33 @@ abstract class LibDbBaseTest extends JDbTest
 		$insDb=jf::db();
 		for ($i=0; $i<2; $i++)
 			jf::SQL("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES (?,?,?,?);",
-			"username{$i}","some_pass{$i}", "some_salt", 1);
-			$r=$insDb->exec("UPDATE {$this->TablePrefix()}users SET Protocol=10 WHERE Salt='some_salt';");
-			$this->assertEquals(2, $r);
+				"username{$i}","some_pass{$i}", "some_salt", 1);
+		$r=$insDb->exec("UPDATE {$this->TablePrefix()}users SET Protocol=10 WHERE Salt='some_salt';");
+		$this->assertEquals(2, $r);
 	
-			$r=$insDb->exec("UPDATE {$this->TablePrefix()}users SET Protocol=9 WHERE Salt='another_salt';");
-			$this->assertEquals(0, $r);
+		$r=$insDb->exec("UPDATE {$this->TablePrefix()}users SET Protocol=9 WHERE Salt='another_salt';");
+		$this->assertEquals(0, $r);
 	}
 	/**
 	* @depends testExec
 	*/
 	function testInitialize()
 	{
-	$insDb=jf::db();
-	$config= \jf\DatabaseManager::Configuration();
+		$insDb=jf::db();
+		$config= \jf\DatabaseManager::Configuration();
 	
-	$tableList=$insDb->GetListTables($config->DatabaseName);
-	$insDb->Initialize($config->DatabaseName);
-	foreach($tableList as $table)
-		$this->assertLessThanOrEqual($insDb->exec("SELECT * FROM {$table};"),0);
+		$tableList=$insDb->GetListTables($config->DatabaseName);
+		$insDb->Initialize($config->DatabaseName);
+		foreach($tableList as $table)
+			$this->assertLessThanOrEqual($insDb->exec("SELECT * FROM {$table};"),0);
 	}
-	function testInitializeDate()
+	function testInitializeData()
 	{
 		$insDb=jf::db();
-		$config= \jf\DatabaseManager::Configuration(1);
+		$config= \jf\DatabaseManager::Configuration();
 	
 		$insDb->InitializeData($config->DatabaseName);
-		$r=jf::SQL("SELECT count(*) AS Num FROM {$this->TablePrefix()}users;");
+		$r=jf::SQL("SELECT count(*) AS Num FROM {$this->TablePrefix()}users");
 		$this->assertLessThan($r[0]['Num'],0);
 	}
 }
@@ -85,10 +81,11 @@ abstract class LibDbStatementBaseTest extends JDbTest
 	{
 		$insDb=jf::db();
 	
-		$r=$insDb->exec("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES('username1','some_pass', 'some_salt', 1);");
-		$myStatement=$insDb->prepare("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES (?,?,?,?);");
-		$insDb->exec("DELETE FROM {$this->TablePrefix()}users WHERE Username='username1'");
-		$this->assertEquals($r, $myStatement->execute("username1","some_pass", "some_salt",1));
+		$r=jf::SQL("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES('username1','some_pass', 'some_salt', 1)");
+		jf::SQL("DELETE FROM {$this->TablePrefix()}users WHERE Username='username1'");
+		$myStatement=$insDb->prepare("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES (?,?,?,?)");
+		$myStatement->execute("username1","some_pass", "some_salt",1);
+		$this->assertEquals($r+1, $insDb->LastID());
 	}
 	/**
 	 * @depends testExecute

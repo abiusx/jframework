@@ -20,17 +20,6 @@ class LibDbPdoMysqlTest extends LibDbBaseTest
 		$insDb=jf::db();
 		$this->assertEquals("'quote-text'",$insDb->quote("quote-text"));
 	}
-// 	function testInitializeData()
-// 	{
-// 		$insDb=jf::db();
-// 		$config= \jf\DatabaseManager::Configuration();
-	
-// 		$insDb->InitializeData($config->DatabaseName);
-// 		$statement=$insDb->prepare("SELECT count(*) AS Num FROM {$this->TablePrefix()}users;");
-// 		$statement->execute();
-// 		$r=$statement->fetchAll();
-// 		$this->assertLessThan($r[0]['Num'],0);
-// 	}
 }
 
 class LibJfDbalPdoMysqlStatementTest extends LibDbStatementBaseTest
