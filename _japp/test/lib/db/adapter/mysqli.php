@@ -18,7 +18,7 @@ class LibDbMysqliTest extends LibDbBaseTest
 	function testQuote()
 	{
 		$insDb=jf::db();
-		$this->assertEquals("\'quote-text\'",$insDb->quote("'quote-text'"));
+		$this->assertEquals("\'quote-test\'",$insDb->quote("'quote-test'"));
 	}
 }
 
