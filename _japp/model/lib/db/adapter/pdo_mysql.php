@@ -41,7 +41,8 @@ class DB_pdo_mysql extends BaseDatabase
 
 	function LastID()
 	{
-		return $this->DB->lastInsertId ();
+		$res=$this->DB->lastInsertId ();
+		return $res;
 	}
 
 	function quote($Param)
@@ -158,7 +159,8 @@ class jfDBAL_PDO_MySQL_Statement extends BaseDatabaseStatement
 
 	function rowCount()
 	{
-		return $this->Statement->rowCount ();
+		$res=$this->Statement->rowCount ();
+		return $res;
 	}
 
 	function fetch()
