@@ -6,14 +6,19 @@ class LibDbMysqliTest extends LibDbBaseTest
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$setting->Adapter="pdo_mysql";
-		\jf\DatabaseManager::AddConnection($setting);
+		$config=new \jf\DatabaseSetting("mysqli", $setting->DatabaseName, $setting->Username, $setting->Password);
+		\jf\DatabaseManager::AddConnection($config,2);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
 	public static function tearDownAfterClass()
 	{
 		parent::tearDownAfterClass();
 		\jf\DatabaseManager::$DefaultIndex=0;
+	}
+	function testQuote()
+	{
+		$insDb=jf::db();
+		$this->assertEquals("\'quote-text\'",$insDb->quote("'quote-text'"));
 	}
 }
 
@@ -23,8 +28,8 @@ class LibDbStatementMysqliTest extends LibDbStatementBaseTest
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$setting->Adapter="pdo_mysql";
-		\jf\DatabaseManager::AddConnection($setting);
+		$config=new \jf\DatabaseSetting("mysqli", $setting->DatabaseName, $setting->Username, $setting->Password);
+		\jf\DatabaseManager::AddConnection($config,2);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
 	public static function tearDownAfterClass()
