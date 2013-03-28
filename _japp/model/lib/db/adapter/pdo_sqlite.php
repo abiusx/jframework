@@ -168,7 +168,7 @@ class jfDBAL_PDO_SQLite_Statement extends BaseDatabaseStatement
 		{
 			$args = func_get_args();
 			call_user_func_array ( array (
-				$this, "Bind" 
+				$this, "bindAll" 
 			), $args );
 		}
 		$this->DBAL->increaseQueryCount();
