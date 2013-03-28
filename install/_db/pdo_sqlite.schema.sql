@@ -1,4 +1,4 @@
-BEGIN TRANSACTION 
+BEGIN TRANSACTION;
 
 --
 -- Table structure for table `PREFIX_logs`
@@ -158,4 +158,4 @@ CREATE TABLE IF NOT EXISTS `PREFIX_xuser` (
   UNIQUE (`Email`)
 );
 
-COMMIT
+COMMIT;
