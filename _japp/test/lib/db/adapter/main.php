@@ -11,7 +11,9 @@ class LibAdapterMainTest extends JTestSuite
 				$this->add("jf/test/lib/db/adapter/pdo_mysql");
 				$this->add("jf/test/lib/db/adapter/mysqli");
 				break;
-			//pdo_sqlite will add later
+			case "pdo_sqlite":
+				$this->add("jf/test/lib/db/adapter/pdo_mysql");
+				break;
 		}
 	}
 }
