@@ -58,7 +58,7 @@ abstract class LibDbBaseTest extends JDbTest
 		$tableList=$insDb->GetListTables($config->DatabaseName);
 		$insDb->Initialize($config->DatabaseName);
 		foreach($tableList as $table)
-			$this->assertLessThanOrEqual($insDb->exec("SELECT * FROM {$table};"),0);
+			$this->assertLessThanOrEqual(jf::SQL("SELECT * FROM {$table};"),0);
 	}
 	function testInitializeData()
 	{
