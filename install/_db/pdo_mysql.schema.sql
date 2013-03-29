@@ -1,5 +1,3 @@
-BEGIN TRANSACTION;
-
 -- phpMyAdmin SQL Dump
 -- version 2.11.9.2
 -- http://www.phpmyadmin.net
@@ -166,4 +164,3 @@ CREATE TABLE IF NOT EXISTS `PREFIX_xuser` (
   UNIQUE KEY `Email` (`Email`(128))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-COMMIT;

@@ -1,5 +1,3 @@
-BEGIN TRASACTION;
-
 INSERT INTO `PREFIX_rbac_permissions` (`ID`, `Lft`, `Rght`, `Title`, `Description`) VALUES
 (1, 1, 2, 'root', 'root');
 
@@ -21,5 +19,3 @@ INSERT INTO `PREFIX_users` (`ID`, `Username`, `Password`, `Salt`, `Protocol`) VA
 
 INSERT INTO `PREFIX_xuser` (`ID`,`Email`,`CreateTimestamp`,`Activated`) VALUES
 (1, 'root@localhost','0','1');
-
-COMMIT;
