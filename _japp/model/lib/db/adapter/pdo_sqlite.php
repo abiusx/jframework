@@ -21,7 +21,7 @@ class DB_pdo_sqlite extends BaseDatabase
 		if ($db->Username and $db->Username != "")
 		{
 			$File = "{$db->DatabaseName}";
-			$this->DB = new \PDO ( "sqlite:" . $File.".db" );
+			$this->DB = new \PDO ( "sqlite::memory:" );
 			$this->DB->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
 			$this->Initialize($db->DatabaseName);
 // 			if (! is_writable ( $File ) && (! defined ( "jf_DB_ReadOnly" ) or ! constant ( "jf_DB_ReadOnly" ))) trigger_error ( "PDO_SQLite : database file not writable. Set read-only or grant write access to database file." );
@@ -79,7 +79,8 @@ class DB_pdo_sqlite extends BaseDatabase
 		$out = array ();
 		if (is_array ( $TablesQuery ))
 			foreach ( $TablesQuery as $t )
-				$out [] = $t ['name'];
+				if ($t['name'] != "sqlite_sequence")
+					$out [] = $t ['name'];
 		return $out;
 	}
 	
@@ -89,7 +90,7 @@ class DB_pdo_sqlite extends BaseDatabase
 		array_shift($tables);
 		if (is_array ( $tables ))
 			foreach ( $tables as $tableName )
-			$this->SQL ( "DROP TABLE " . $tableName );
+				$this->SQL ( "DROP TABLE " . $tableName );
 	}
 	
 	protected function TruncateAllTables($DatabaseName)
@@ -98,7 +99,7 @@ class DB_pdo_sqlite extends BaseDatabase
 		array_shift($tables);
 		if (is_array ( $tables ))
 			foreach ( $tables as $tableName )
-			$this->SQL ( "DELETE FROM " . $tableName );
+				$this->SQL ( "DELETE FROM " . $tableName );
 	}
 }
 
