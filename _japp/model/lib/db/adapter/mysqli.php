@@ -33,7 +33,6 @@ class DB_mysqli extends BaseDatabase
 			if (!$this->Connection->select_db($db->DatabaseName))
 			{
 				$this->SQL("CREATE DATABASE `{$db->DatabaseName}` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin");
-				$this->Connection = new \mysqli ( $db->Host, $db->Username, $db->Password);
 				if (!$res=$this->Connection->select_db($db->DatabaseName))
 				{
 					throw new \Exception("Can not initialize database.");
