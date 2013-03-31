@@ -67,9 +67,15 @@ class TestLauncher extends BaseLauncher
 		self::$TestSuite->addTestFile(self::$TestFiles[0]);
 		$result = new \PHPUnit_Framework_TestResult;
 		$Profiler=new Profiler();
+		if (function_exists("xdebug_start_code_coverage"))
+			xdebug_start_code_coverage();
 		self::$TestSuite->run($result);
+		if (function_exists("xdebug_start_code_coverage"))
+			$Coverage=xdebug_get_code_coverage();		
+		else
+			$Coverage=null;
 		$Profiler->Stop();
-		$this->OutputResult($result,$Profiler);
+		$this->OutputResult($result,$Profiler,$Coverage);
 		return true;
 	}
 	
@@ -78,13 +84,13 @@ class TestLauncher extends BaseLauncher
 	 * @param \PHPUnit_Framework_TestResult $Result
 	 * @param Profiler $Profiler
 	 */
-	function OutputResult($Result,$Profiler)
+	function OutputResult($Result,$Profiler,$Coverage=null)
 	{
 		if (jf::$RunMode->IsCLI())
 			$file="cli";
 		else
 			$file='web';
-		jf::run("jf/view/_internal/test/result/{$file}",array("result"=>$Result,"profiler"=>$Profiler));
+		jf::run("jf/view/_internal/test/result/{$file}",array("result"=>$Result,"profiler"=>$Profiler,"coverage"=>$Coverage));
 		
 	}
 	

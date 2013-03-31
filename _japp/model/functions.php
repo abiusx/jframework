@@ -43,12 +43,16 @@ function print_($var)
 	if (ob_get_contents()) ob_flush();
 }
 
-function exho($data)
+function exho($data,$return=false)
 {
 	if (defined("ENT_HTML401"))
-		echo htmlspecialchars($data,ENT_QUOTES | ENT_HTML401,"UTF-8");
+		$t=htmlspecialchars($data,ENT_QUOTES | ENT_HTML401,"UTF-8");
 	else
-		echo htmlspecialchars($data,ENT_QUOTES,"UTF-8");
+		$t=htmlspecialchars($data,ENT_QUOTES,"UTF-8");
+	if ($return)
+		return $t;
+	else
+		echo $t;
 		
 }
 
