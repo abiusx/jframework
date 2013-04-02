@@ -10,7 +10,6 @@ class TestLauncher extends BaseLauncher
 {
 	public static $PHPUnit="jf/plugin/phpunit";
 	
-	private static $PHPUnitPhar="_japp/plugin/phpunit.phar";
 	
 	function  __construct($Request)
 	{
@@ -66,6 +65,8 @@ class TestLauncher extends BaseLauncher
 		self::$TestFiles[]=$this->ModuleFile($module);
 		self::$TestSuite->addTestFile(self::$TestFiles[0]);
 		$result = new \PHPUnit_Framework_TestResult;
+		$listener=new TestListener();
+		$result->addListener($listener);
 		$Profiler=new Profiler();
 		if (function_exists("xdebug_start_code_coverage"))
 			xdebug_start_code_coverage();
@@ -75,6 +76,7 @@ class TestLauncher extends BaseLauncher
 		else
 			$Coverage=null;
 		$Profiler->Stop();
+		$listener->Finish();
 		$this->OutputResult($result,$Profiler,$Coverage);
 		return true;
 	}
@@ -110,6 +112,7 @@ class TestLauncher extends BaseLauncher
 	{
 		jf::import(self::$PHPUnit."/Autoload");
 		jf::import("jf/model/namespace/public/test");
+		jf::import("jf/model/test/listener");
 	}
 	
 }
