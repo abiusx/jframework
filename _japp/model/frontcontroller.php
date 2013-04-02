@@ -138,7 +138,6 @@ class BaseFrontController
 	{
 		$Parts=explode("/",$Request);
 		$Type=array_shift($Parts);
-// 		die(print_($Parts));
 		$isFile = array_key_exists ( $Type, FileLauncher::$StaticContentPrefix );
 		if ($Type == "app")
 			return new ApplicationLauncher( $Request );

@@ -23,7 +23,10 @@ if (HttpRequest::Host()=="localhost")
 elseif (strpos(HttpRequest::Host(),"jframework.info")!==false) #TODO:replace this with your site
 	jf::$RunMode->Add(RunModes::Deploy);
 elseif (php_sapi_name()=="cli")
+{
 	jf::$RunMode->Add(RunModes::CLI);
+	jf::$RunMode->Add(RunModes::Develop);
+}
 else 
 	throw new Exception("No running state determined, please provide rules in app/config/application.php.");
 
