@@ -24,6 +24,7 @@ class ErrorHandler
 	 */
 	function Error2Exception($errno, $errstr, $errfile, $errline)
 	{
+		die("wow");
 		throw new \ErrorException ( $errstr, $errno, 0, $errfile, $errline );
 	}
 	/**
@@ -31,7 +32,7 @@ class ErrorHandler
 	 * @var unknown_type
 	 */
 	static $Enabled=true;
-	
+	private static $OldState=false;
 	/**
 	 * This serves as the general catcher of exceptions
 	 * @param Exception $e
@@ -47,20 +48,22 @@ class ErrorHandler
 	 */
 	function SetErrorHandler()
 	{
-		if (self::$Enabled)
+		if (self::$Enabled && self::$OldState!=self::$Enabled)
 		{
 			$this->BackupErrorReporting = (error_reporting ());
 			error_reporting ( 0 );
 			set_error_handler ( array ($this, 'Error2Exception' ));#, E_ALL | E_NOTICE );
 			register_shutdown_function ( array ($this, 'ShutdownFunction' ) );
+			
 		}
-		else
+		elseif (!self::$Enabled && self::$OldState!=self::$Enabled)
 		{
 			if ($this->BackupErrorReporting !== null)
 				error_reporting ( $this->BackupErrorReporting );
 			restore_error_handler ();
 			$this->BackupErrorReporting = null;
 		}
+		self::$OldState=self::$Enabled;
 	}
 	/**
 	 * Unsets jframework error handler and disables it
