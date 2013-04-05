@@ -16,6 +16,8 @@ class DatabaseSetting extends Model
 		$this->DatabaseName=$DatabaseName;
 		$this->Host=$Host;
 		$this->TablePrefix=$TablePrefix;
+		if($this->TablePrefix=="")
+			throw new \Exception("TablePrefix shouldn't be an empty string: ".$this->Adapter);
 	}
 }
 class NoDatabaseSetting extends DatabaseSetting
