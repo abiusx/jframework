@@ -286,8 +286,8 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 		{
 			foreach ( $TablesQuery as $t )
 			{
-				$prefix=substr($t ['table_name'], 0, strlen(DatabaseManager::$TablePrefix));
-				if($prefix==DatabaseManager::$TablePrefix)
+				$prefix=substr($t ['table_name'], 0, strlen(DatabaseManager::Configuration()->TablePrefix));
+				if($prefix==DatabaseManager::Configuration()->TablePrefix)
 					$out [] = $t ['table_name'];
 			}
 		}
@@ -339,7 +339,7 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 		$SetupFile = realpath ( __DIR__ . "/../../../../" . self::$DatabaseSetupFolder . "{$Adapter}.{$Type}.sql" );
 		if (file_exists ( $SetupFile ))
 		{
-			return str_replace ( "PREFIX_", DatabaseManager::$TablePrefix, file_get_contents ( $SetupFile ) );
+			return str_replace ( "PREFIX_", DatabaseManager::Configuration()->TablePrefix, file_get_contents ( $SetupFile ) );
 		}
 		else
 			throw new \Exception ( "No database setup file available for '{$Adapter}'." );

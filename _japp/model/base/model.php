@@ -4,7 +4,7 @@ abstract class Model
 {
 	protected function TablePrefix()
 	{
-		return DatabaseManager::$TablePrefix;
+		return DatabaseManager::Configuration()->TablePrefix;
 	}
 	
 	protected function ModuleFile($Module=null)

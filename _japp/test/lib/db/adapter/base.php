@@ -3,7 +3,7 @@ abstract class LibDbBaseTest extends JDbTest
 {
 	function TablePrefix()
 	{
-		return "jf_";
+		return \jf\DatabaseManager::Configuration()->TablePrefix;
 	}
 	function testLastID()
 	{
@@ -75,7 +75,7 @@ abstract class LibDbStatementBaseTest extends JDbTest
 {
 	function TablePrefix()
 	{
-		return "jf_";
+		return \jf\DatabaseManager::Configuration()->TablePrefix;
 	}
 	function testExecute()
 	{

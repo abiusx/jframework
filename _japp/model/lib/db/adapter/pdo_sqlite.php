@@ -81,8 +81,8 @@ class DB_pdo_sqlite extends BaseDatabase
 		{
 			foreach ( $TablesQuery as $t )
 			{
-				$prefix=substr($t ['name'], 0, strlen(DatabaseManager::$TablePrefix));
-				if ($prefix == DatabaseManager::$TablePrefix)
+				$prefix=substr($t ['name'], 0, strlen(DatabaseManager::Configuration()->TablePrefix));
+				if ($prefix == DatabaseManager::Configuration()->TablePrefix)
 					$out [] = $t ['name'];
 			}
 		}

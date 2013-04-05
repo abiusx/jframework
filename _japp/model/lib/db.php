@@ -7,21 +7,22 @@ namespace jf;
 
 class DatabaseSetting extends Model
 {
-	public $Adapter,$DatabaseName,$Username,$Password,$Host;
-	function __construct($Adapter,$DatabaseName,$Username,$Password,$Host="localhost")
+	public $Adapter,$DatabaseName,$Username,$Password,$Host,$TablePrefix;
+	function __construct($Adapter,$DatabaseName,$Username,$Password,$Host="localhost",$TablePrefix="jf_")
 	{
 		$this->Adapter=$Adapter;
 		$this->Username=$Username;
 		$this->Password=$Password;
 		$this->DatabaseName=$DatabaseName;
 		$this->Host=$Host;
+		$this->TablePrefix=$TablePrefix;
 	}
 }
 class NoDatabaseSetting extends DatabaseSetting
 {
 	function __construct()
 	{
-		$this->Adapter=$this->DatabaseName=$this->Username=$this->Password=$this->Host=null;
+		$this->Adapter=$this->DatabaseName=$this->Username=$this->Password=$this->Host=$this->TablePrefix=null;
 	}
 }
 
