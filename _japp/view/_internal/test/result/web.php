@@ -216,6 +216,7 @@ if ($coverage)
 	<th width='50'>Total Lines</th>
 	<th width='50'>Needing Coverage</th>
 	<th width='50'>Having Coverage</th>
+	<th width='50'>Lines Left</th>
 	<th>Code Coverage</th>
 </tr>
 </thead>
@@ -228,6 +229,8 @@ if ($coverage)
 		$linesHavingCoverage=array_keys($coverage[$file]);
 		$linesNeedingCoverage=linesNeedingCoverage($file);
 		$linesNeedingAndHavingCoverage=array_intersect($linesNeedingCoverage,$linesHavingCoverage);
+		$linesLeft=count($linesNeedingCoverage)-count($linesNeedingAndHavingCoverage);
+		if ($linesLeft==0) $linesLeft="";
 		$codeCoveragePercent=sprintf("%.0f",count($linesNeedingAndHavingCoverage)/count($linesNeedingCoverage)*100);
 		$filename=substr($file,strlen(jf::root()));
 		echo "<td style='padding-left:5px;text-align:left;'><a href='?coverage=1&file=".urlencode($filename)."'>".exho($filename,true)."</a></td>\n";
@@ -237,6 +240,7 @@ if ($coverage)
 		echo "<td>{$totalLines}</td>\n";
 		echo "<td>".count($linesNeedingCoverage)."</td>\n";
 		echo "<td>".count($linesNeedingAndHavingCoverage)."</td>\n";
+		echo "<td>{$linesLeft}</td>\n";
 		echo "<td><strong>{$codeCoveragePercent}%</strong></td>\n";
 		echo "</tr>\n";
 	}
