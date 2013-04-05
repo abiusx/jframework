@@ -78,9 +78,14 @@ class DB_pdo_sqlite extends BaseDatabase
 		$TablesQuery = $this->SQL ( "SELECT name FROM sqlite_master WHERE type = 'table'" );
 		$out = array ();
 		if (is_array ( $TablesQuery ))
+		{
 			foreach ( $TablesQuery as $t )
-				if ($t['name'] != "sqlite_sequence")
+			{
+				$prefix=substr($t ['name'], 0, strlen(DatabaseManager::$TablePrefix));
+				if ($prefix == DatabaseManager::$TablePrefix)
 					$out [] = $t ['name'];
+			}
+		}
 		return $out;
 	}
 	

@@ -283,8 +283,14 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 				WHERE TABLE_SCHEMA = '{$DatabaseName}'" );
 		$out = array ();
 		if (is_array ( $TablesQuery ))
+		{
 			foreach ( $TablesQuery as $t )
-				$out [] = $t ['table_name'];
+			{
+				$prefix=substr($t ['table_name'], 0, strlen(DatabaseManager::$TablePrefix));
+				if($prefix==DatabaseManager::$TablePrefix)
+					$out [] = $t ['table_name'];
+			}
+		}
 		return $out;
 	}
 	/**
