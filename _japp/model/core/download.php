@@ -1,12 +1,12 @@
 <?php
 namespace jf;
 /**
- * jFramework File and Download Manager
+ * jframework File Download Manager
  * 
  * @author abiusx
- * @version 1.6
+ * @version 1.7
  */
-class FileManager
+class DownloadManager
 {
     /**
      * Returns MIME type for different extensions
@@ -79,7 +79,13 @@ class FileManager
         elseif ($ex=='xml') return'text/xml';
         else return 'application/octet-stream'; //Download if not known
     }
-    function CheckModified($File,$SendHeader=true)
+    /**
+     * Checks whether or not a file is modified based on the HTTP heaer and file time.
+     * @param string $File
+     * @param boolean $SendHeader send 304 or Last-Modified
+     * @return boolean
+     */
+    function IsModifiedSince($File,$SendHeader=true)
     {
             //Cache-Control
     	$cond = isset($_SERVER['http_if_modified_since']) ? $_SERVER['http_if_modified_since'] : getenv("http_if_modified_since");
@@ -89,41 +95,38 @@ class FileManager
         if ($if_modified_since == $gmdate_mod)
         {
             if ($SendHeader) header("HTTP/1.0 304 Not Modified");
-            return true;
+            return false;
         }
         if ($SendHeader)
         {
             header("Last-Modified: $gmdate_mod"); //Set the time this resource is modified
         	header("Cache-Control: must-revalidate"); //Browser should ask me for cache
-        	
         }
-    	
+        return true;
     }
     
-    static $BandwidthLimitInitialSize=1048576; //1MB
-    static $BandwidthLimitSpeed=102400; //100KB
-    /**
-     * This function feeds a file to the client. By chaning the 
-     * FILE_DOWNLOAD_LIMIT option, you can limit download bandwidth automatically.
-     *
-     * @param String $File
-     */
+    static $BandwidthLimitInitialSize=10485760; //10MB
+    static $BandwidthLimitSpeed=1048576; //1MB
+	/**
+	 * Feed a file to the client
+	 * @param string $RealFile the file to be dumped
+	 * @param string $OutputFile the desired output filename
+	 * @return boolean
+	 */
     function Feed ($RealFile,$OutputFile=null)
     {
 		if ($OutputFile===null)
 			$OutputFile=basename($RealFile);
-		$File=$RealFile;
     	//file exists
-    	if (! file_exists($File) or ! is_file($File))
+    	if (! $File=realfile($RealFile))
             return false;
 
-		if ($this->CheckModified($File)) return true;	
+		if ($this->IsModifiedSince($File)) return true;	
         header("Content-Type: " . $this->MIME($OutputFile));
-        //saved filename
-//        $DownloadedFilename = array_pop(explode("/", $File));
+
 		if (strpos($OutputFile," ")!==false)
 			$OutputFile="'{$OutputFile}'";
-        header("Content-Disposition: filename={$OutputFile}"); //add attachment; here to force download
+        header("Content-disposition: filename={$OutputFile}"); //add attachment; here to force download
         $FileSize = filesize($File);
         
         //Resumable
@@ -205,16 +208,22 @@ class FileManager
             return true;
         }
     }
+    /**
+     * Feeds some data to the client
+     * @param string $Data
+     * @param string $OutputFilename
+     * @return boolean
+     */
     function FeedData($Data,$OutputFilename)
     {
     	$Filename=$OutputFilename;
-        header("Content-Type: " . $this->MIME($Filename));
-        header('Content-Disposition: attachment; filename=' . $Filename); //add attachment; here to force download
-        header('Content-Length: '.strlen($Data));
+        header("Content-type: " . $this->MIME($Filename));
+        header('Content-disposition: attachment; filename=' . $Filename); //add attachment; here to force download
+        header('Content-length: '.strlen($Data));
         
 		echo $Data;
+		flush();
         return true;
-    	
     }
 }
 ?>

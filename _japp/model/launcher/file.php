@@ -33,7 +33,7 @@ class FileLauncher extends BaseLauncher
 		$file=jf::root().DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$Parts);
 		
 		
-		$FileMan=new FileManager();
+		$FileMan=new DownloadManager();
 		return $FileMan->Feed($file);
 	}
 	

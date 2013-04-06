@@ -80,8 +80,8 @@ else
  * Its FileManager has the ability to limit download speed of files larger than a specific size.
  * Set both the initial size and the limit here.
  */
-	jf\FileManager::$BandwidthLimitInitialSize=-1;  # negative number disables it
-	jf\FileManager::$BandwidthLimitSpeed=1024*1024;
+	jf\DownloadManager::$BandwidthLimitInitialSize=-1;  # negative number disables it
+	jf\DownloadManager::$BandwidthLimitSpeed=1024*1024;
 
 /**
  * Iterative Templates

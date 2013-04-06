@@ -48,7 +48,7 @@ class Autoload
 				"Test"=>"model/base/test",
 
 				"ErrorHandler"=>"model/core/errorhandler",
-				"FileManager"=>"model/core/fileman",
+				"DownloadManager"=>"model/core/download",
 				"HttpRequest"=>"model/core/http",
 
 				"BaseLauncher"=>"model/launcher/base",
