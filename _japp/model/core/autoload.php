@@ -1,11 +1,11 @@
 <?php
 namespace jf;
 class AutoloadRuleException extends \Exception {}
-
+class AutoloadIsStaticException extends \Exception {}
 /**
  * Handles spl_autoload in jframework
  * @author abiusx
- * @version 1.1
+ * @version 1.2
  * 
  */
 class Autoload
@@ -18,16 +18,22 @@ class Autoload
 	 
 	function __construct()
 	{
-		throw new Exception("Autoload class is static and should not be instantiated.");
+		throw new AutoloadIsStaticException("Autoload class is static and should not be instantiated.");
 	}
 	
+	private static $isRegistered=false;
 	/**
 	 * Register this class as autoload handler
 	 */
 	static function Register()
 	{
-		spl_autoload_register ( __NAMESPACE__."\Autoload::Autoload" , true );
-		self::AddCoreModules();	
+		/**/
+		if (!self::$isRegistered)
+		{
+			self::$isRegistered=true;
+			spl_autoload_register ( __NAMESPACE__."\Autoload::Autoload" , true );
+			self::AddCoreModules();	
+		}
 	}
 	/**
 	 * this function adds rules for autoloading of core jframework modules
@@ -69,7 +75,10 @@ class Autoload
 		
 		$RuleArray=array();
 		foreach ($Array as $k=>$v)
-			$RuleArray[__NAMESPACE__."\\{$k}"]=realpath(__DIR__."/../../{$v}.php");
+		{
+			$RuleArray[__NAMESPACE__."\\{$k}"]=realpath(jf::root()."/_japp/{$v}.php");
+			$RuleArray["\\".__NAMESPACE__."\\{$k}"]=realpath(jf::root()."/_japp/{$v}.php");
+		}
 		self::AddRuleArray($RuleArray);
 	}
 	
@@ -93,18 +102,23 @@ class Autoload
 	 */
 	private static function CoreAutoload($Classname)
 	{
-		if (substr($Classname,0,3)=="jf\\")
+		if ( strlen($Classname)>3 and substr($Classname,0,3)=="jf\\")
 		{
 			$Classname=substr($Classname,3);
 			$Prefix="_j"; //_japp folder
 		}
+		elseif ( strlen($Classname)>4 and substr($Classname,0,4)=="\\jf\\")
+		{
+			$Classname=substr($Classname,4);
+			$Prefix="_j"; //_japp folder
+		}
 		else 
 			$Prefix="";
-		//separates words in a camelCase word (also CamelCase)
-		preg_match_all('/((?:^|[A-Z])[a-z]+)/',$Classname,$matches);
+		//separates words in a camelCase word (also CamelCase), a single uppercase letter counts as one. If don't want it, change * to +
+		preg_match_all('/((?:^|[A-Z])[a-z_0-9]*)/',$Classname,$matches);
 		if (!is_array($matches[0]))
 			return false;
-		
+		if ($matches[0][0]=="") array_shift($matches[0]); //remove the empty element from the beginning if it doesnt start with capital
 		$Parts=$matches[0];
 		$Type=array_pop($Parts);
 		$ClasstypeToFolderArray=array_flip(self::$ClasstypeArray);
@@ -120,7 +134,7 @@ class Autoload
 			
 		$File=realpath(__DIR__."/../../../{$Prefix}app/". //_japp or app folder
 			"{$folder}/".strtolower(implode("/",$Parts)).".php");
-		if (file_exists($File))
+		if ($File)
 		{
 			require_once $File;
 			return true;
@@ -142,8 +156,10 @@ class Autoload
 			{
 				foreach (self::$Handlers as $callback)	//try all callback handlers
 				{
-					if (call_user_func_array($callback,array($Classname)))
+					if ($r=call_user_func_array($callback,array($Classname)))
+					{
 						return true;					//one loaded the module, good
+					}
 				}
 				return false;
 			}
@@ -202,29 +218,34 @@ class Autoload
 	/**
 	 * Add an autoload handler callback. this is called whenever an autoload is required. last added handler has most priority
 	 * NOTE: if the callback already exists in handlers, it is just moved to most priority
+	 * handlers are added STACK like to the beginning of the array
 	 * @param string $callback a function getting classname as parameter which returns true when found and loaded the class, and false otherwise
 	 */
 	static function AddHandler($callback)
 	{
-		if (array_search($callback,self::$Handlers))
-			self::RemoveHandler($callback);
+		self::RemoveHandler($callback);
 		array_unshift(self::$Handlers,$callback);
 	}
 
 	/**
 	 * Removes a previously added autoload handler
-	 * @param string $callback
+	 * @param string|integer $callback, its index
 	 */
 	static function RemoveHandler($callback)
 	{
-		if ($key=array_search($callback,self::$Handlers))
+		if (is_int($callback))
+		{
+			unset(self::$Handlers[$callback]);
+			return true;
+		}
+		elseif (($key=array_search($callback,self::$Handlers))!==false)
 		{
 			unset(self::$Handlers[$key]);
 			return true;
 		}
 		return false;
-			
 	}
+	
 	
 	/**
 	 * Remove a single autoload rule
@@ -254,5 +275,14 @@ class Autoload
 	{
 		foreach ($RuleArray as $Classname)
 			self::RemoveRule($Classname);
+	}
+	
+	/**
+	 * Resets rules to the standard rule-set of autoloader
+	 */
+	static function ResetRules()
+	{
+		self::$List=array();
+		self::AddCoreModules();
 	}
 }

@@ -24,7 +24,6 @@ class ErrorHandler
 	 */
 	function Error2Exception($errno, $errstr, $errfile, $errline)
 	{
-		die("wow");
 		throw new \ErrorException ( $errstr, $errno, 0, $errfile, $errline );
 	}
 	/**
