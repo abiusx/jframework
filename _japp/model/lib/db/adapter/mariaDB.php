@@ -1,20 +1,20 @@
 <?php
 namespace jf;
 /**
- * jFramework mariaDB driver
+ * jframework mariadb adapter
  * @version 1.00
  */
-class DB_mariaDB extends DB_pdo_mysql
+class DB_mariadb extends DB_pdo_mysql
 {
 
 }
 
 
 /**
- * jFramework DBAL's mariaDB prepared statements class
+ * jframework mariadb prepared statements class
  * @version 1.00
  */
-class jfDBAL_mariaDB_Statement extends jfDBAL_PDO_MySQL_Statement
+class DB_Statement_mariadb extends DB_Statement_pdo_mysql
 {
 
 }

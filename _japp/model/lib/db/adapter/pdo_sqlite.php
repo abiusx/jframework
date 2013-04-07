@@ -70,7 +70,7 @@ class DB_pdo_sqlite extends BaseDatabase
 
 	function prepare($Query)
 	{
-		return new jfDBAL_PDO_SQLite_Statement($this,$Query);
+		return new DB_Statement_pdo_sqlite($this,$Query);
 	}
 	
 	protected function ListTables($DatabaseName)
@@ -114,7 +114,7 @@ class DB_pdo_sqlite extends BaseDatabase
  * @author abiusx
  * @version 2.0
  */
-class jfDBAL_PDO_SQLite_Statement extends BaseDatabaseStatement
+class DB_Statement_pdo_sqlite extends BaseDatabaseStatement
 {
 	/**
 	 * DBAL
