@@ -6,7 +6,7 @@ class LibDbMysqliTest extends LibDbBaseTest
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$config=new \jf\DatabaseSetting("mysqli", $setting->DatabaseName, $setting->Username, $setting->Password);
+		$config=new \jf\DatabaseSetting("mysqli", $setting->DatabaseName, $setting->Username, $setting->Password, $setting->Host, $setting->TablePrefix);
 		\jf\DatabaseManager::AddConnection($config,2);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
@@ -28,7 +28,7 @@ class LibDbStatementMysqliTest extends LibDbStatementBaseTest
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$config=new \jf\DatabaseSetting("mysqli", $setting->DatabaseName, $setting->Username, $setting->Password);
+		$config=new \jf\DatabaseSetting("mysqli", $setting->DatabaseName, $setting->Username, $setting->Password, $setting->Host, $setting->TablePrefix);
 		\jf\DatabaseManager::AddConnection($config,2);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}

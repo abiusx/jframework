@@ -6,7 +6,7 @@ class LibDbMariaDBTest extends LibDbPdoMysqlTest
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$config=new \jf\DatabaseSetting("mariaDB", $setting->DatabaseName, $setting->Username, $setting->Password);
+		$config=new \jf\DatabaseSetting("mariaDB", $setting->DatabaseName, $setting->Username, $setting->Password, $setting->Host, $setting->TablePrefix);
 		\jf\DatabaseManager::AddConnection($config,2);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
@@ -18,7 +18,7 @@ class LibJfDbalMariaDBStatementTest extends LibJfDbalPdoMysqlStatementTest
 	{
 		parent::setUpBeforeClass();
 		$setting=\jf\DatabaseManager::Configuration();
-		$config=new \jf\DatabaseSetting("mariaDB", $setting->DatabaseName, $setting->Username, $setting->Password);
+		$config=new \jf\DatabaseSetting("mariaDB", $setting->DatabaseName, $setting->Username, $setting->Password, $setting->Host, $setting->TablePrefix);
 		\jf\DatabaseManager::AddConnection($config,2);
 		\jf\DatabaseManager::$DefaultIndex=2;
 	}
