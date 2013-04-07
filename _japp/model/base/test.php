@@ -86,13 +86,25 @@ abstract class DbTest extends Test
 	
 	private static $initiated=false;
 	
+	private static $count=0;
 	function __construct() {
 		parent::__construct();
+		self::$count++;
 		if (!self::$initiated)
 		{
-			DatabaseManager::AddConnection($this->dbConfig());
-			DatabaseManager::$DefaultIndex++;
+			DatabaseManager::AddConnection($this->dbConfig(),"test");
+			DatabaseManager::$DefaultIndex="test";
 			self::$initiated=true;
+		}
+	}
+	function __destruct()
+	{
+		self::$count--;
+		if (self::$count==0)
+		{
+			//FIXME: it doesnt work, probably because of the shutdown nature of system.
+// 			jf::db()->DropTables();
+			DatabaseManager::$DefaultIndex=0;
 		}
 	}
 		
