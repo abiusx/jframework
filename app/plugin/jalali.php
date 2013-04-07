@@ -23,15 +23,18 @@ class Jalali extends JPlugin
 	}
 	static function Year($Timestamp=null)
 	{
-		return self::DateArray($Timestamp)[0];
+		$t=self::DateArray($Timestamp);
+		return $t[0];
 	}
 	static function Month($Timestamp=null)
 	{
-		return self::DateArray($Timestamp)[1];
+		$t=self::DateArray($Timestamp);
+		return $t[1];
 	}
 	static function Day($Timestamp=null)
 	{
-		return self::DateArray($Timestamp)[2];
+		$t=self::DateArray($Timestamp);
+		return $t[2];
 	}
 	/**
 	 * Calculate the difference between system time and GMT +3:30 time
@@ -57,15 +60,18 @@ class Jalali extends JPlugin
 	} 
 	static function Hour($Timestamp=null)
 	{
-		return self::TimeArray($Timestamp)[0];
+		$t=self::TimeArray($Timestamp);
+		return $t[0];
 	}
 	static function Minute($Timestamp=null)
 	{
-		return self::TimeArray($Timestamp)[1];
+		$t=self::TimeArray($Timestamp);
+		return $t[1];
 	}
 	static function Second($Timestamp=null)
 	{
-		return self::TimeArray($Timestamp)[2];
+		$t=self::TimeArray($Timestamp);
+		return $t[2];
 	}
 	static function DateString($Timestamp=null,$Delimiter="-")
 	{
