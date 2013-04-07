@@ -1,11 +1,15 @@
 INSERT INTO `PREFIX_rbac_permissions` (`ID`, `Lft`, `Rght`, `Title`, `Description`) VALUES
 (1, 1, 2, 'root', 'root');
 
+
 INSERT INTO `PREFIX_rbac_rolepermissions` (`RoleID`, `PermissionID`, `AssignmentDate`) VALUES
 (1, 1, 0);
 
+
+
 INSERT INTO `PREFIX_rbac_roles` (`ID`, `Lft`, `Rght`, `Title`, `Description`) VALUES
 (1, 1, 2, 'root', 'root');
+
 
 INSERT INTO `PREFIX_rbac_userroles` (`UserID`, `RoleID`, `AssignmentDate`) VALUES
 (1, 1, 0);
