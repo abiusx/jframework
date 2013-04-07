@@ -79,7 +79,7 @@ abstract class DbTest extends Test
 	function setUp()
 	{
 		$this->resettime();
-		jf::db()->InitializeData($this->dbConfig()->DatabaseName);
+		jf::db()->Initialize();
 		jf::$Session->Refresh();
 		
 	}

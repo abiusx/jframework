@@ -23,7 +23,7 @@ class PermissionManager extends BaseRBAC
 	}
 	function __construct()
 	{
-		$this->permissions = new FullNestedSet ( $this->TablePrefix () . "rbac_permissions", "ID", "Lft", "Rght" );
+		$this->permissions = new FullNestedSet ( "rbac_permissions", "ID", "Lft", "Rght" );
 	}
 	/**
 	 * Remove a permission from system

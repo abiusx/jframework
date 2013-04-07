@@ -18,6 +18,7 @@ class DB_pdo_sqlite extends BaseDatabase
 	
 	function __construct(DatabaseSetting $db)
 	{
+		parent::__construct($db);
 		if ($db->Username and $db->Username != "")
 		{
 			$File = "{$db->DatabaseName}";

@@ -27,6 +27,7 @@ class DB_mysqli extends BaseDatabase
 	
 	function __construct(DatabaseSetting $db)
 	{
+		parent::__construct($db);
 		if ($db->Username && $db->Username != "")
 		{
 			$this->Connection = new \mysqli ( $db->Host, $db->Username, $db->Password);
@@ -88,21 +89,9 @@ class DB_mysqli extends BaseDatabase
 		return new DB_Statement_mysqli ( $this ,$Query);
 	}
 	
-	function Initialize($DatabaseName)
+	function InitializeData()
 	{
-		#this is a bit faster than the base one, like 5%
-		$this->DropAllTables($DatabaseName);
-		$r=$this->Connection->multi_query($this->GetInitializationSQL());
-		while ($this->Connection->more_results())
-		{
-			$this->Connection->next_result();
-// 			$r=$this->Connection->store_result();
-// 			if ($r) $r->free();
-		}
-	}
-	function InitializeData($DatabaseName)
-	{
-		$this->TruncateAllTables($DatabaseName);
+		$this->TruncateTables();
 		$r=$this->Connection->multi_query($this->GetDataSQL());
 		while ($this->Connection->more_results())
 			$this->Connection->next_result();

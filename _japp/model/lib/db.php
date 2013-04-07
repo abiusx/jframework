@@ -36,15 +36,18 @@ class DatabaseManager extends Model
 {
 	/**
 	 * 
-	 * @var DatabaseSetting
+	 * @var BaseDatabase
 	 */
-	protected static $Configurations=array();
 	protected static $Connections=array();
+
 	/**
-	 * Set this to enforce a table prefix on all jframework database tables
-	 * @var string
+	 * Adds a new connection to database manager.
+	 * If index is set, the connection is added with the index (which coult be a string)
+	 * @param DatabaseSetting $dbConfig
+	 * @param integer|string $Index
+	 * @throws ImportException
+	 * @return unknown
 	 */
-	static $TablePrefix="";
 	static function AddConnection(DatabaseSetting $dbConfig,$Index=null)
 	{
 		$Classname="\\jf\\DB_{$dbConfig->Adapter}";
@@ -58,45 +61,43 @@ class DatabaseManager extends Model
 		}
 		if ($Index===null)
 		{
-			self::$Configurations[]=$dbConfig;
 			return self::$Connections[]=new $Classname($dbConfig);
 		}
 		else
 		{
-			self::$Configurations[$Index]=$dbConfig;
 			return self::$Connections[$Index]=new $Classname($dbConfig);	
 		}
 				
 	}
 	/**
 	 * Holds the index of default database, used by db and SQL functions of jf:: accessor
+	 * This effectively makes all alias database functions to use the set index.
 	 * @var integer
 	 */
 	static $DefaultIndex=0;
 	/**
 	 * Returns a database connection
-	 * @param integer $Index
+	 * @param integer $Index optional leave to return default
 	 * @return BaseDatabase
 	 */
 	static function Database($Index=null)
 	{
 		if ($Index===null)
-// 			return reset(self::$Connections);
 			return self::$Connections[self::$DefaultIndex];
 		else
 			return self::$Connections[$Index];
 	}
 	/**
 	 * Returns a database connection setting
-	 * @param integer $Index
+	 * @param integer $Index optional leave for default
 	 * @return DatabaseSetting
 	 */
 	static function Configuration($Index=null)
 	{
 		if ($Index===null)
-			return self::$Configurations[self::$DefaultIndex];
+			return self::Database(self::$DefaultIndex)->Config;
 		else		
-		return self::$Configurations[$Index];
+			return self::Database($Index)->Config;
 	} 
 }
 

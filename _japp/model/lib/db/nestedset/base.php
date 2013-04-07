@@ -34,7 +34,7 @@ interface NestedSetInterface
  * Create a new instance of this class and pass the name of table and name of the 3 fields above
   */
 //FIXME: many of these operations should be done in a transaction
-class BaseNestedSet implements NestedSetInterface
+class BaseNestedSet extends Model implements NestedSetInterface
 {
     function __construct($Table,$IDField="ID",$LeftField="Left",$RightField="Right")
     {
@@ -49,7 +49,7 @@ class BaseNestedSet implements NestedSetInterface
     }
     protected function Table()
     {
-    	return $this->Table;
+    	return  $this->TablePrefix().$this->Table;
     }
     protected function Left()
     {

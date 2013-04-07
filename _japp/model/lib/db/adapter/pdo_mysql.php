@@ -23,6 +23,7 @@ class DB_pdo_mysql extends BaseDatabase
 	protected  $m_databasename;
 	function __construct(DatabaseSetting $db)
 	{
+		parent::__construct($db);
 		if ($db->Username and $db->Username != "")
 		{
 			$this->DB = new \PDO ( "mysql:dbname={$db->DatabaseName};host={$db->Host};",$db->Username,$db->Password);

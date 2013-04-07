@@ -138,10 +138,20 @@ class trait_DatabaseProfiler {
 abstract class BaseDatabase extends trait_DatabaseProfiler
 {
 // 	use DatabaseProfiler;
+
+	/**
+	 * 
+	 * @var DatabaseSetting
+	 */
+	public $Config; 
+	
 	protected $QueryCount;
 	protected $QueryTime;
 	private $tempQueryTime; // for QueryTimeIn()
-	abstract function __construct(DatabaseSetting $db);
+	function __construct(DatabaseSetting $db)
+	{
+		$this->Config=$db;
+	}
 
 	/**
 	 * returns insertion ID
@@ -240,29 +250,24 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	static $AutoInitialize = true;
 	/**
 	 * This function sets up database from install files.
-	 * It should also select the database after its done.
+	 * Calls initializeSchema and initializeData.
 	 * An adapter should reimplement this and use mutliple query function and
 	 * native syntax
 	 */
-	function Initialize($DatabaseName)
+	function Initialize()
 	{
-		$this->DropAllTables ( $DatabaseName );
-		
-		$Query = $this->GetInitializationSQL ();
-		$Queries = explode ( ";", $Query );
-		foreach ( $Queries as $Q )
-			$this->query ( $Q );
+		$this->InitializeSchema();
+		$this->InitializeData();
 	}
 	/**
 	 * this function sets up database from install files, but only
 	 * empties tables and inserts initial data into them.
 	 * This is much faster than Initialize for testing fixture.
-	 * 
-	 * @param string $DatabaseName        	
+	 * Only tables with matching prefix are truncated.
 	 */
-	function InitializeData($DatabaseName)
+	function InitializeData()
 	{
-		$this->TruncateAllTables ( $DatabaseName );
+		$this->TruncateAllTables ();
 		
 		$Query = $this->GetDataSQL ();
 		$Queries = explode ( ";", $Query );
@@ -271,62 +276,64 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	}
 	
 	/**
-	 * Returns list of tables in a database
+	 * Initializes the schema by creating tables, only if no tables are found
+	 */
+	function InitializeSchema()
+	{
+		if ($this->ListTables()!=array())
+			return ;
+		$Query = $this->GetSchemaSQL();
+		$Queries = explode ( ";", $Query );
+		foreach ( $Queries as $Q )
+			$this->query ( $Q );
+		
+	}
+	/**
+	 * Returns list of tables in the database matching table prefix configuration
 	 * 
-	 * @param string $DatabaseName        	
+	 * @param boolean $All return all tables, not just matching prefixes        	
 	 * @return array null
 	 */
-	protected function ListTables($DatabaseName)
+	public function ListTables($All=false)
 	{
 		$TablesQuery = $this->SQL ( "SELECT table_name
 				FROM information_schema.tables
-				WHERE TABLE_SCHEMA = '{$DatabaseName}'" );
+				WHERE TABLE_SCHEMA = '{$this->Config->DatabaseName}'" );
 		$out = array ();
 		if (is_array ( $TablesQuery ))
 		{
 			foreach ( $TablesQuery as $t )
 			{
-				$prefix=substr($t ['table_name'], 0, strlen(DatabaseManager::Configuration()->TablePrefix));
-				if($prefix==DatabaseManager::Configuration()->TablePrefix)
+				$prefix=substr($t ['table_name'], 0, strlen($this->Config->TablePrefix));
+				if($All or $prefix==$this->Config->TablePrefix )
 					$out [] = $t ['table_name'];
 			}
 		}
 		return $out;
 	}
 	/**
-	 * alias for ListTables
-	 * @param string $DatabaseName
-	 * @return array
+	 * Drops tables of a database that have a matching prefix
 	 */
-	function GetListTables($DatabaseName)
+	function DropTables()
 	{
-		return	$this->ListTables($DatabaseName);
-	}
-	/**
-	 * Drops all tables of a database
-	 * 
-	 * @param string $DatabaseName        	
-	 */
-	protected function DropAllTables($DatabaseName)
-	{
-		$tables = $this->ListTables ( $DatabaseName );
+		$tables = $this->ListTables ();
 		if (is_array ( $tables ))
 			foreach ( $tables as $tableName )
 				$this->SQL ( "DROP TABLE " . $tableName );
 	}
 	
 	/**
-	 * Truncates all data from all tables
+	 * Truncates all data from tables having a matching prefix
 	 * 
-	 * @param string $DatabaseName        	
 	 */
-	protected function TruncateAllTables($DatabaseName)
+	protected function TruncateTables()
 	{
-		$tables = $this->ListTables ( $DatabaseName );
+		$tables = $this->ListTables ();
 		if (is_array ( $tables ))
 			foreach ( $tables as $tableName )
 				$this->SQL ( "TRUNCATE " . $tableName );
 	}
+	
 	/**
 	 * Gets sql from a setup sql file
 	 * 
@@ -339,7 +346,7 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 		$SetupFile = realpath ( __DIR__ . "/../../../../" . self::$DatabaseSetupFolder . "{$Adapter}.{$Type}.sql" );
 		if (file_exists ( $SetupFile ))
 		{
-			return str_replace ( "PREFIX_", DatabaseManager::Configuration()->TablePrefix, file_get_contents ( $SetupFile ) );
+			return str_replace ( "PREFIX_", $this->Config->TablePrefix, file_get_contents ( $SetupFile ) );
 		}
 		else
 			throw new \Exception ( "No database setup file available for '{$Adapter}'." );
@@ -363,14 +370,9 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 		return $this->GetSQL ( "data" );
 	}
 	/**
-	 * Returns SQL for setup, which is a mixture of Schema and Data SQLs
-	 * 
-	 * @return string
+	 * holds the path to setup sql files
+	 * @var string
 	 */
-	protected function GetInitializationSQL()
-	{
-		return $this->GetSchemaSQL () . $this->GetDataSQL ();
-	}
 	protected static $DatabaseSetupFolder = "install/_db/";
 }
 abstract class 
