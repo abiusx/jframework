@@ -118,10 +118,10 @@ class DownloadManager
 		if ($OutputFile===null)
 			$OutputFile=basename($RealFile);
     	//file exists
-    	if (! $File=realfile($RealFile))
+    	if (! $File=realpath($RealFile))
             return false;
 
-		if ($this->IsModifiedSince($File)) return true;	
+		if (!$this->IsModifiedSince($File)) return true;
         header("Content-Type: " . $this->MIME($OutputFile));
 
 		if (strpos($OutputFile," ")!==false)
