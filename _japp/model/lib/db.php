@@ -70,6 +70,16 @@ class DatabaseManager extends Model
 				
 	}
 	/**
+	 * Set this to enforce a table prefix on all jframework database tables
+	 * @var string
+	 */
+// 	static function RemoveConnection(DatabaseSetting $dbConfig, $Index=null)
+// 	{
+// 		print_(\jf\DatabaseManager::$Connections->Config);
+// 		//array_splice(\jf\DatabaseManager::$Configurations, $Index, 1);
+// 		//print_(\jf\DatabaseManager::$Configurations);
+// 	}
+	/**
 	 * Holds the index of default database, used by db and SQL functions of jf:: accessor
 	 * This effectively makes all alias database functions to use the set index.
 	 * @var integer
