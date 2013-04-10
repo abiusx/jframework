@@ -267,7 +267,7 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	 */
 	function InitializeData()
 	{
-		$this->TruncateAllTables ();
+		$this->TruncateTables ();
 		
 		$Query = $this->GetDataSQL ();
 		$Queries = explode ( ";", $Query );

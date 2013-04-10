@@ -74,7 +74,7 @@ class DB_pdo_sqlite extends BaseDatabase
 		return new DB_Statement_pdo_sqlite($this,$Query);
 	}
 	
-	protected function ListTables($DatabaseName)
+	public function ListTables($All=false)
 	{
 		$TablesQuery = $this->SQL ( "SELECT name FROM sqlite_master WHERE type = 'table'" );
 		$out = array ();
@@ -82,26 +82,26 @@ class DB_pdo_sqlite extends BaseDatabase
 		{
 			foreach ( $TablesQuery as $t )
 			{
-				$prefix=substr($t ['name'], 0, strlen(DatabaseManager::Configuration()->TablePrefix));
-				if ($prefix == DatabaseManager::Configuration()->TablePrefix)
+				$prefix=substr($t ['name'], 0, strlen($this->Config->TablePrefix));
+				if ($All or $prefix == $this->Config->TablePrefix)
 					$out [] = $t ['name'];
 			}
 		}
 		return $out;
 	}
 	
-	protected function DropAllTables($DatabaseName)
+	function DropTables()
 	{
-		$tables = $this->ListTables ( $DatabaseName );
+		$tables = $this->ListTables ();
 		array_shift($tables);
 		if (is_array ( $tables ))
 			foreach ( $tables as $tableName )
 				$this->SQL ( "DROP TABLE " . $tableName );
 	}
 	
-	protected function TruncateAllTables($DatabaseName)
+	function TruncateTables()
 	{
-		$tables = $this->ListTables ( $DatabaseName );
+		$tables = $this->ListTables ();
 		array_shift($tables);
 		if (is_array ( $tables ))
 			foreach ( $tables as $tableName )
