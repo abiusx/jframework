@@ -171,6 +171,6 @@ class jFormCaptcha extends jFormWidget
 		$this->DumpLabel();
 		echo "<input type='text' ";
 		$this->DumpAttributes();
-		echo " /> <img height='40' src='?CAPTCHA=".urlencode($this->Name())."' border='1px' onclick=\"this.src=''; this.src='?CAPTCHA=".urlencode($this->Name())."';\"  style='cursor:pointer;vertical-align:middle;' title='Click for a new image if you cant read this one.' />";
+		echo " /> <img height='40' src='".HttpRequest::Path()."?CAPTCHA=".urlencode($this->Name())."' border='1px' onclick=\"this.src=''; this.src='".HttpRequest::Path()."?CAPTCHA=".urlencode($this->Name())."';\"  style='cursor:pointer;vertical-align:middle;' title='Click for a new image if you cant read this one.' />";
 	}
 }
