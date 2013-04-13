@@ -71,8 +71,8 @@ abstract class DbTest extends Test
 		if (self::$config===null)
 		{
 			$dbConfig=DatabaseManager::Configuration();
-			$dbConfig->TablePrefix=$dbConfig->TablePrefix."_test_";
-			self::$config=$dbConfig;
+			$newConfig= new \jf\DatabaseSetting($dbConfig->Adapter, $dbConfig->DatabaseName, $dbConfig->Username, $dbConfig->Password, $dbConfig->Host, $dbConfig->TablePrefix."_test_");
+			self::$config=$newConfig;
 		}
 		return self::$config;
 	}
