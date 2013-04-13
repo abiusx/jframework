@@ -17,12 +17,19 @@ class LibDatabaseManagerTest extends JDbTest
 			$this->assertSame(\jf\DatabaseManager::Configuration($i),$dbConfig);
 		}
 	}
-// 	function testRemoveConnection()
-// 	{
-// 		$userConfig= \jf\DatabaseManager::Configuration(1); //index 1 is for test mode ans 0 for app mode
-// 		$dbConfig= new \jf\DatabaseSetting($userConfig->Adapter, "db_name", $userConfig->Username, $userConfig->Password);
-// 		\jf\DatabaseManager::AddConnection($dbConfig,20); //first empty place in configuration array
+	/**
+	 * @depends testAddConnection
+	 */
+	function testRemoveConnection()
+	{
+		$userConfig= \jf\DatabaseManager::Configuration("test");
+		$dbConfig= new \jf\DatabaseSetting($userConfig->Adapter, "db_remove", $userConfig->Username, $userConfig->Password, $userConfig->Host, $userConfig->TablePrefix);
+		\jf\DatabaseManager::AddConnection($dbConfig,20);
 		
-// 		\jf\DatabaseManager::RemoveConnection(\jf\DatabaseManager::Configuration(1),20);
-// 	}
+		\jf\DatabaseManager::RemoveConnection($dbConfig);
+		try {
+			$this->assertNull(\jf\DatabaseManager::Configuration(20));
+			$this->fail();
+		} catch(Exception $e) {}
+	}
 }

@@ -42,7 +42,7 @@ class DatabaseManager extends Model
 
 	/**
 	 * Adds a new connection to database manager.
-	 * If index is set, the connection is added with the index (which coult be a string)
+	 * If index is set, the connection is added with the index (which could be a string)
 	 * @param DatabaseSetting $dbConfig
 	 * @param integer|string $Index
 	 * @throws ImportException
@@ -70,15 +70,24 @@ class DatabaseManager extends Model
 				
 	}
 	/**
-	 * Set this to enforce a table prefix on all jframework database tables
-	 * @var string
+	 * Removes a connection from database manager.
+	 * @param DatabaseSetting $dbConfig
+	 * @throws ImportException
+	 * @return unknown
 	 */
-// 	static function RemoveConnection(DatabaseSetting $dbConfig, $Index=null)
-// 	{
-// 		print_(\jf\DatabaseManager::$Connections->Config);
-// 		//array_splice(\jf\DatabaseManager::$Configurations, $Index, 1);
-// 		//print_(\jf\DatabaseManager::$Configurations);
-// 	}
+	static function RemoveConnection(DatabaseSetting $dbConfig)
+	{
+		$i=0;
+		foreach(self::$Connections as $Con)
+		{
+			if($Con->Config == $dbConfig)
+			{
+				array_splice(self::$Connections, $i, 1);
+				break;
+			}
+			$i++;
+		}
+	}
 	/**
 	 * Holds the index of default database, used by db and SQL functions of jf:: accessor
 	 * This effectively makes all alias database functions to use the set index.
