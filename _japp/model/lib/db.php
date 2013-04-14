@@ -71,11 +71,32 @@ class DatabaseManager extends Model
 	}
 	/**
 	 * Removes a connection from database manager.
-	 * @param DatabaseSetting $dbConfig
-	 * @throws ImportException
-	 * @return unknown
+	 * @param $arg, It could be instanceof DatabaseSetting or an Index of Connections
 	 */
-	static function RemoveConnection(DatabaseSetting $dbConfig)
+	static function RemoveConnection($arg=null)
+	{
+		$type=gettype($arg);
+		if($arg instanceof DatabaseSetting)
+			self::RemoveConfig($arg);
+		else if($type=="integer" or $type=="string" or $type="NULL")
+			self::RemoveIndex($arg);
+	}
+	private static function RemoveIndex($Index)
+	{
+		if($Index===null)
+			$Index=self::DefaultIndex;
+		$i=0;
+		foreach(self::$Connections as $key=>$value)
+		{
+			if($key == $Index)
+			{
+				array_splice(self::$Connections, $i, 1);
+				break;
+			}
+			$i++;
+		}
+	}
+	private static function RemoveConfig(DatabaseSetting $dbConfig)
 	{
 		$i=0;
 		foreach(self::$Connections as $Con)

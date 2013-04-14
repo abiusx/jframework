@@ -24,11 +24,18 @@ class LibDatabaseManagerTest extends JDbTest
 	{
 		$userConfig= \jf\DatabaseManager::Configuration("test");
 		$dbConfig= new \jf\DatabaseSetting($userConfig->Adapter, "db_remove", $userConfig->Username, $userConfig->Password, $userConfig->Host, $userConfig->TablePrefix);
-		\jf\DatabaseManager::AddConnection($dbConfig,20);
 		
+		\jf\DatabaseManager::AddConnection($dbConfig,20);
 		\jf\DatabaseManager::RemoveConnection($dbConfig);
 		try {
 			$this->assertNull(\jf\DatabaseManager::Configuration(20));
+			$this->fail();
+		} catch(Exception $e) {}
+		
+		\jf\DatabaseManager::AddConnection($dbConfig,"remove");
+		\jf\DatabaseManager::RemoveConnection("remove");
+		try {
+			$this->assertNull(\jf\DatabaseManager::Configuration("remove"));
 			$this->fail();
 		} catch(Exception $e) {}
 	}
