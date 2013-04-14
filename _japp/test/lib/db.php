@@ -39,4 +39,17 @@ class LibDatabaseManagerTest extends JDbTest
 			$this->fail();
 		} catch(Exception $e) {}
 	}
+	/**
+	 * @depends testAddConnection
+	 */
+	function  testFindIndex()
+	{
+		$userConfig= \jf\DatabaseManager::Configuration("test");
+		$dbConfig= new \jf\DatabaseSetting($userConfig->Adapter, "db_find", $userConfig->Username, $userConfig->Password, $userConfig->Host, $userConfig->TablePrefix);
+		\jf\DatabaseManager::AddConnection($dbConfig,"find_index");
+	
+		$this->assertEquals("find_index", \jf\DatabaseManager::FindIndex($dbConfig));
+		$anotherConfig= new \jf\DatabaseSetting($userConfig->Adapter, "db_another_find", $userConfig->Username, $userConfig->Password, $userConfig->Host, $userConfig->TablePrefix);
+		$this->assertFalse(\jf\DatabaseManager::FindIndex($anotherConfig));
+	}
 }

@@ -110,6 +110,18 @@ class DatabaseManager extends Model
 		}
 	}
 	/**
+	* Return index of dbConfig in Connections
+	* @param DatabaseSetting $dbConfig
+	* @return int|string index, if dbConfig not found returns false
+	*/
+	static function FindIndex(DatabaseSetting $dbConfig)
+	{
+		foreach(self::$Connections as $key=>$value)
+			if($value->Config == $dbConfig)
+				return $key;
+		return false;
+	}
+	/**
 	 * Holds the index of default database, used by db and SQL functions of jf:: accessor
 	 * This effectively makes all alias database functions to use the set index.
 	 * @var integer
