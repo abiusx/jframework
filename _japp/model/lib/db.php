@@ -50,6 +50,11 @@ class DatabaseManager extends Model
 	 */
 	static function AddConnection(DatabaseSetting $dbConfig,$Index=null)
 	{
+		if(self::FindIndex($dbConfig))
+		{
+			throw new \Exception("this configuration was added before");
+			return;
+		}
 		$Classname="\\jf\\DB_{$dbConfig->Adapter}";
 		try {
 			jf::import("jf/model/lib/db/adapter/{$dbConfig->Adapter}");
