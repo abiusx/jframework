@@ -39,8 +39,8 @@ class SessionManager extends Model
 	{
 		$SessionID = $this->SessionID();
 		$Result = jf::SQL ( "SELECT * FROM {$this->TablePrefix()}session WHERE SessionID=?", $SessionID );
-		
-		if (! $Result)
+
+                if (! $Result)
 		{
 			$this->CreateSession();
 			return true;
@@ -62,11 +62,12 @@ class SessionManager extends Model
 			}
 			else
 				jf::SQL ( "UPDATE {$this->TablePrefix()}session SET LastAccess=? ,AccessCount=AccessCount+1 , CurrentRequest=? WHERE SessionID=?", jf::time (), jf::$Request,session_id () );
+                                
+            $this->_Sweep ();        
 			return false;
 		}
 		else 
 			throw new \Exception("More than one session record found in database!");
-		$this->_Sweep ();
 	}
 
 	public static $SweepRatio=.1;

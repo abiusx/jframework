@@ -19,13 +19,14 @@ class UserManager extends Model
 		return (jf::SQL ( "DELETE FROM {$this->TablePrefix()}users WHERE LOWER(Username)=LOWER(?)", $Username )>=1);
 	}
 	/**
-	 * Tells whether or not a user is logged in
+	 * Tells whether or not a user with current session is logged in
 	 * @param Integer $UserID
 	 * @return Boolean
 	 */
 	function IsLoggedIn($UserID)
 	{
-		$Result=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}session WHERE UserID=?",$UserID);
+                $SessionID = jf::$Session->SessionID();
+                $Result=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}session WHERE UserID=? AND SessionID=?",$UserID,$SessionID);
 		if ($Result[0]['Result']>=1) return true;
 		else return false;
 	}
