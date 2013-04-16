@@ -50,11 +50,9 @@ class DatabaseManager extends Model
 	 */
 	static function AddConnection(DatabaseSetting $dbConfig,$Index=null)
 	{
-		if(self::FindIndex($dbConfig))
-		{
-			throw new \Exception("this configuration was added before");
-			return;
-		}
+		$configIndex=self::FindIndex($dbConfig);
+		if($configIndex != -1)
+			return self::$Connections[$configIndex];
 		$Classname="\\jf\\DB_{$dbConfig->Adapter}";
 		try {
 			jf::import("jf/model/lib/db/adapter/{$dbConfig->Adapter}");
@@ -117,14 +115,14 @@ class DatabaseManager extends Model
 	/**
 	* Return index of dbConfig in Connections
 	* @param DatabaseSetting $dbConfig
-	* @return int|string index, if dbConfig not found returns false
+	* @return int|string index, if dbConfig not found returns -1
 	*/
 	static function FindIndex(DatabaseSetting $dbConfig)
 	{
 		foreach(self::$Connections as $key=>$value)
 			if($value->Config == $dbConfig)
 				return $key;
-		return false;
+		return -1;
 	}
 	/**
 	 * Holds the index of default database, used by db and SQL functions of jf:: accessor
