@@ -2,18 +2,20 @@
 jf::import("jf/test/lib/db/adapter/base");
 class LibDbPdoMysqlTest extends LibDbBaseTest
 {
+	private static $Default;
 	public static function setUpBeforeClass()
 	{
 		parent::setUpBeforeClass();
+		self::$Default=\jf\DatabaseManager::$DefaultIndex;
 		$setting=\jf\DatabaseManager::Configuration();
 		$config=new \jf\DatabaseSetting("pdo_mysql", $setting->DatabaseName, $setting->Username, $setting->Password, $setting->Host, $setting->TablePrefix);
 		\jf\DatabaseManager::AddConnection($config,2);
-		\jf\DatabaseManager::$DefaultIndex=2;
+		\jf\DatabaseManager::$DefaultIndex=\jf\DatabaseManager::FindIndex($config);
 	}
 	public static function tearDownAfterClass()
 	{
 		parent::tearDownAfterClass();
-		\jf\DatabaseManager::$DefaultIndex=0;
+		\jf\DatabaseManager::$DefaultIndex=self::$Default;
 	}
 	function testQuote()
 	{
@@ -24,17 +26,19 @@ class LibDbPdoMysqlTest extends LibDbBaseTest
 
 class LibJfDbalPdoMysqlStatementTest extends LibDbStatementBaseTest
 {
+	private static $Default;
 	public static function setUpBeforeClass()
 	{
 		parent::setUpBeforeClass();
+		self::$Default=\jf\DatabaseManager::$DefaultIndex;
 		$setting=\jf\DatabaseManager::Configuration();
 		$config=new \jf\DatabaseSetting("pdo_mysql", $setting->DatabaseName, $setting->Username, $setting->Password, $setting->Host, $setting->TablePrefix);
 		\jf\DatabaseManager::AddConnection($config,2);
-		\jf\DatabaseManager::$DefaultIndex=2;
+		\jf\DatabaseManager::$DefaultIndex=\jf\DatabaseManager::FindIndex($config);
 	}
 	public static function tearDownAfterClass()
 	{
 		parent::tearDownAfterClass();
-		\jf\DatabaseManager::$DefaultIndex=0;
+		\jf\DatabaseManager::$DefaultIndex=self::$Default;
 	}
 }
