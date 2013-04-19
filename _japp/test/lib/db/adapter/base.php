@@ -106,6 +106,16 @@ abstract class LibDbStatementBaseTest extends JDbTest
 		$r=$myStatement->execute("username1","some_pass", "some_salt",1);
 		$this->assertEquals($r, $myStatement->rowCount());
 	}
+	function testFetchAll()
+	{
+		$insDb=jf::db();
+		$insDb->exec("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES('username1','some_pass', 'some_salt', 1);");
+	
+		$r=jf::SQL("SELECT * FROM {$this->TablePrefix()}users;");
+		$myStatement=$insDb->prepare("SELECT * FROM {$this->TablePrefix()}users;");
+		$myStatement->execute();
+		$this->assertEquals($r, $myStatement->fetchAll());
+	}
 	function testFetch()
 	{
 		$insDb=jf::db();
@@ -115,16 +125,5 @@ abstract class LibDbStatementBaseTest extends JDbTest
 		$myStatement->execute();
 	
 		$this->assertEquals($r[0], $myStatement->fetch());
-	}
-	function testFetchAll()
-	{
-		$insDb=jf::db();
-		$insDb->exec("INSERT INTO {$this->TablePrefix()}users (Username, Password, Salt, Protocol) VALUES('username1','some_pass', 'some_salt', 1);");
-	
-		$r=jf::SQL("SELECT * FROM {$this->TablePrefix()}users;");
-		$myStatement=$insDb->prepare("SELECT * FROM {$this->TablePrefix()}users;");
-		$myStatement->execute();
-	
-		$this->assertEquals($r, $myStatement->fetchAll());
 	}
 }

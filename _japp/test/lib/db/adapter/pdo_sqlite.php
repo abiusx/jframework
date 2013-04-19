@@ -24,7 +24,7 @@ class LibDbPdoSqliteTest extends LibDbBaseTest
 	}
 }
 
-class LibJfDbalPdoSqliteStatementTest extends LibDbStatementBaseTest
+class LibDbStatementPdoSqliteTest extends LibDbStatementBaseTest
 {
 	private static $Default;
 	public static function setUpBeforeClass()

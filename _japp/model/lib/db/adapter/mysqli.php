@@ -83,10 +83,9 @@ class DB_mysqli extends BaseDatabase
 		return $this->Connection->affected_rows;
 	}
 
-	function prepare($Query)
+	function PrepareStatement($Query)
 	{
-		if (!$this->Connection) return null;
-		return new DB_Statement_mysqli ( $this ,$Query);
+		return new DB_Statement_mysqli($this, $Query);
 	}
 	
 	function InitializeData()

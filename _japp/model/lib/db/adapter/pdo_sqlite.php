@@ -69,9 +69,9 @@ class DB_pdo_sqlite extends BaseDatabase
 		return $this->DB->exec($Query);
 	}
 
-	function prepare($Query)
+	function PrepareStatement($Query)
 	{
-		return new DB_Statement_pdo_sqlite($this,$Query);
+		return new DB_Statement_pdo_sqlite($this, $Query);
 	}
 	
 	public function ListTables($All=false)
@@ -87,6 +87,7 @@ class DB_pdo_sqlite extends BaseDatabase
 					$out [] = $t ['name'];
 			}
 		}
+		$this->ListOfTable = true;
 		return $out;
 	}
 	
@@ -120,7 +121,7 @@ class DB_Statement_pdo_sqlite extends BaseDatabaseStatement
 	/**
 	 * DBAL
 	 *
-	 * @var jfDBAL_PDO_SQLite
+	 * @var DB_pdo_sqlite
 	 */
 	private $DBAL;
 	/**
@@ -138,6 +139,7 @@ class DB_Statement_pdo_sqlite extends BaseDatabaseStatement
 	{
 		$this->DBAL = $DB;
 		$this->Statement=$DB->DB->prepare($Query);
+		$this->_query=$Query;
 	}
 	/**
 	 * Enter description here...

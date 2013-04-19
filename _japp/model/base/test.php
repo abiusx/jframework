@@ -81,7 +81,6 @@ abstract class DbTest extends Test
 		$this->resettime();
 		jf::db()->Initialize();
 		jf::$Session->Refresh();
-		
 	}
 	
 	private static $initiated=false;

@@ -145,6 +145,8 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	 */
 	public $Config; 
 	
+	protected $ListOfTable = false;
+	
 	protected $QueryCount;
 	protected $QueryTime;
 	private $tempQueryTime; // for QueryTimeIn()
@@ -203,13 +205,21 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	/**
 	 *
 	 *
-	 * prepare a query and returns result statement
+	 * prepare a query before executing it and returns result statement
 	 * 
 	 * @param string $QueryString        	
 	 * @return BaseDatabaseStatement
 	 */
-	abstract function prepare($QueryString);
-	
+	protected $cache= array();
+	abstract protected function PrepareStatement($Query);
+	function prepare($QueryString)
+	{
+		$Index=crc32($QueryString);
+		if(isset($this->cache[$Index]))
+			return $this->cache[$Index];
+		else
+			return $this->cache[$Index]=$this->PrepareStatement($QueryString);
+	}
 	/**
 	 *
 	 *
@@ -280,13 +290,12 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 	 */
 	function InitializeSchema()
 	{
-		if ($this->ListTables()!=array())
+		if ($this->ListOfTable)
 			return ;
 		$Query = $this->GetSchemaSQL();
 		$Queries = explode ( ";", $Query );
 		foreach ( $Queries as $Q )
 			$this->query ( $Q );
-		
 	}
 	/**
 	 * Returns list of tables in the database matching table prefix configuration
@@ -309,6 +318,7 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 					$out [] = $t ['table_name'];
 			}
 		}
+		$this->ListOfTable = true;
 		return $out;
 	}
 	/**
@@ -418,7 +428,7 @@ BaseDatabaseStatement
 		return call_user_func_array ( array ($this, bindAll ), $args );
 	}
 	/**
-	 * execute a prepared statement
+	 * execute a prepared statement, for executing every query you should prepare it before. 
 	 * SHOULD do query timing
 	 *
 	 * @return boolean

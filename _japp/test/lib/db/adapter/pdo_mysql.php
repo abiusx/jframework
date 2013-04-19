@@ -24,7 +24,7 @@ class LibDbPdoMysqlTest extends LibDbBaseTest
 	}
 }
 
-class LibJfDbalPdoMysqlStatementTest extends LibDbStatementBaseTest
+class LibDbStatementPdoMysqlTest extends LibDbStatementBaseTest
 {
 	private static $Default;
 	public static function setUpBeforeClass()

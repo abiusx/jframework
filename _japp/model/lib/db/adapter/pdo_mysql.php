@@ -72,9 +72,9 @@ class DB_pdo_mysql extends BaseDatabase
 		return $this->DB->exec($Query);
 	}
 
-	function prepare($Query)
+	function PrepareStatement($Query)
 	{
-		return new DB_Statement_pdo_mysql ( $this,$Query );
+		return new DB_Statement_pdo_mysql($this, $Query);
 	}
 }
 
@@ -89,7 +89,7 @@ class DB_Statement_pdo_mysql extends BaseDatabaseStatement
 	/**
 	 * DBAL
 	 *
-	 * @var jfDBAL_PDO_MySQL
+	 * @var DB_pdo_mysql
 	 */
 	private $DBAL;
 	/**
