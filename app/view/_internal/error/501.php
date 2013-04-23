@@ -1,5 +1,5 @@
 <?php
-// this is invoked when jFramework receives an unknown request type! )
+// this is invoked when jframework receives an unknown request type! )
 header("HTTP/1.1 501 Not Implemented");
 ?>
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">

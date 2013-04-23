@@ -4,7 +4,7 @@ class MainController extends Controller
 {
     function Start ()
     {
-        $this->Present();
+        return $this->Present();
     }
 }
 ?>
