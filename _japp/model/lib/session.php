@@ -40,9 +40,10 @@ class SessionManager extends Model
 		$SessionID = $this->SessionID();
 		$Result = jf::SQL ( "SELECT * FROM {$this->TablePrefix()}session WHERE SessionID=?", $SessionID );
 
-                if (! $Result)
+		if (! $Result)
 		{
 			$this->CreateSession();
+            $this->_Sweep ();        
 			return true;
 		}
 		if (count ( $Result ) == 1)
