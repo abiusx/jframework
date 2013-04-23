@@ -24,7 +24,7 @@ class MultipleLogin
  * Manages jframework base users. A base user only has a username and a password.
  * For advanced users having login features and password recovery, use ExtendedUserManager 
  * @author abiusx
- *
+ * @version 1.3
  */
 class UserManager extends Model
 {

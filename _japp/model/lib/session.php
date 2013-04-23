@@ -4,7 +4,7 @@ namespace jf;
  * jframework session manager
  * This class Handles user session and user management (credentials).
  * @author abiusx
- * @version 4.0
+ * @version 4.1
  */
 class SessionManager extends Model
 {
