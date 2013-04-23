@@ -1,5 +1,24 @@
 <?php
 namespace jf;
+class MultipleLogin
+{
+	/**
+	 * Do not allow multiple logins, fails when tried.
+	 * @var integer
+	 */
+	const Reject=1;
+	/**
+	 * Allow multiple logins, but overwrite the last login
+	 * @var integer
+	 */
+	const Overwrite=2;
+	/**
+	 * Allow multiple logins, and create separate sessions
+	 * @var integer
+	 */
+	const Allowed=4;
+	
+}
 
 /**
  * Manages jframework base users. A base user only has a username and a password.
@@ -20,19 +39,26 @@ class UserManager extends Model
 	}
 	/**
 	 * Tells whether or not a user is logged in
-	 * @param Integer $UserID
+	 * @param integer|string $UserID or $SessionID
 	 * @return Boolean
 	 */
 	function IsLoggedIn($UserID)
 	{
-		$Result=j::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}session WHERE UserID=?",$UserID);
-		if ($Result[0]['Result']>=1) return true;
-		else return false;
+			return $this->LoginCount($UserID)>=1;
+	}
+	/**
+	 * Returns numbers of a user ID that are logged in
+	 * @param integer $UserID
+	 */
+	function LoginCount($UserID)
+	{
+		$Result=jf::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}session WHERE UserID=?",$UserID);
+		return $Result[0]['Result'];
 	}
 	
-		/**
-	 * Destroys the current session,Hence logging out the user. Then recreates the session.
-	 * If UserID provided, destroys the session for that user 
+	/**
+	 * Logs out the current user and rolls the session
+	 * This would not logout all users in mutli-login mode 
 	 * @param $UserID
 	 */
 	function Logout($UserID=null)
@@ -42,9 +68,22 @@ class UserManager extends Model
 				return false;
 			else
 				$UserID=jf::CurrentUser();
-		j::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=0 WHERE UserID=? ", $UserID );
-		j::$Session->RollSession();
-		$res=j::$Session->Refresh();
+		jf::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=0 WHERE UserID=? AND SessionID=?", $UserID,jf::$Session->SessionID() );
+		jf::$Session->RollSession();
+	}
+	/**
+	 * Logs out all instance of a user that are logged in.
+	 * @param integer $UserID
+	 */
+	function LogoutAll($UserID=null)
+	{
+		if ($UserID===null)
+			if (jf::CurrentUser()===null)
+				return false;
+			else
+				$UserID=jf::CurrentUser();
+		jf::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=0 WHERE UserID=?", $UserID );
+		jf::$Session->RollSession();
 	}
 	
 	
@@ -89,29 +128,75 @@ class UserManager extends Model
 
 	/**
 	 * Logs a user in only by user ID without needing valid credentials. Intended for system use only.
+	 * This is the core login function, it is called everytime a user is trying to log in
 	 * @param integer $UserID
-	 * @return boolean false if user not found
+	 * @return boolean|null false if user not found, null on multiple login reject
 	 */
 	function ForceLogin($UserID)
 	{
-		if (! $this->IsLoggedIn($UserID))
+		/**
+		 * 4 possiblilities
+		 * Session not logged in, UserID not logged in
+		 * Roll and login
+		 * Session logged in, UserID not logged in
+		 * Roll and change session to UserID 
+		 * Session not logged in, UserID logged in
+		 * Roll and change session to UserID
+		 * Session logged in, UserID logged in,
+		 * Roll and change session to UserID
+		 * 
+		 */
+		if (! jf::$Session->IsLoggedIn() && ! $this->IsLoggedIn($UserID))
 		{
-			$r=jf::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID, jf::$Session->SessionID(), jf::time (), jf::time (), 1, jf::$Session->SessionID());
+			jf::$Session->RollSession();
+			$r=jf::SQL ( "UPDATE {$this->TablePrefix()}session SET UserID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID, jf::time (), jf::time (), 1, jf::$Session->SessionID());
 			if ($r>0) jf::$Session->SetCurrentUser($UserID);
 			return $r>0;
 		}
-		else
+		else 
 		{
-			$r=jf::SQL( "UPDATE {$this->TablePrefix()}session SET UserID=?,SessionID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE UserID=?", $UserID, jf::$Session->SessionID(), jf::time (), jf::time (), 1, $UserID);
+
+			if (self::$MultipleLoginPolicy==MultipleLogin::Reject)
+			{
+				if ($this->IsLoggedIn($UserID))	//already logged in
+					return null;
+				else							//session has another user, change
+				{
+					jf::$Session->RollSession();
+					$r=jf::SQL( "UPDATE {$this->TablePrefix()}session SET UserID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID,  jf::time (), jf::time (), 1, jf::$Session->SessionID());
+				}
+			}
+			elseif (self::$MultipleLoginPolicy==MultipleLogin::Overwrite)
+			{
+				$this->LogoutAll($UserID);
+				$r=jf::SQL( "UPDATE {$this->TablePrefix()}session SET UserID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID,  jf::time (), jf::time (), 1, jf::$Session->SessionID());
+			}
+			elseif (self::$MultipleLoginPolicy==MultipleLogin::Allowed)
+			{
+				
+				jf::$Session->RollSession();
+				$r=jf::SQL( "UPDATE {$this->TablePrefix()}session SET UserID=?,LoginDate=?,LastAccess=?,AccessCount=? WHERE SessionID=?", $UserID,  jf::time (), jf::time (), 1, jf::$Session->SessionID());
+				if ($r==0) //same user
+					$r=1;
+			}
+			else
+				throw new \Exception("Unknown multiple login policy.");
 			if ($r>0) jf::$Session->SetCurrentUser($UserID);
 			return $r>0;
 		}
 	}
+	
+	
 	/**
-	Logs in a user if credentials are valid
+	 * One of the constants from MultipleLogin
+	 * @var integer
+	 */
+	static $MultipleLoginPolicy=MultipleLogin::Overwrite;
+	/**
+	Logs in a user if credentials are valid, and based on multipleLoginPolicy
     @param string $Username of the user
     @param string $Password textual password of the user
-    @return boolean
+    @return boolean|null false on invalid credentials, null on multiple login reject
 	 */
 	function Login($Username, $Password)
 	{

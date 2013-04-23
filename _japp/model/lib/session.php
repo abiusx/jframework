@@ -121,6 +121,7 @@ class SessionManager extends Model
 	/**
 	 * 
 	 * changes sessionID both in cookie and database, without destroying the session
+	 * @return boolean
 	 */
 	function RollSession()
 	{
@@ -128,8 +129,8 @@ class SessionManager extends Model
 		session_regenerate_id();
 		$newSession=$this->SessionID();
 		$r=jf::SQL("UPDATE {$this->TablePrefix()}session SET SessionID=? WHERE SessionID=?",$newSession,$oldSession);
-		if ($r>=1) return true;
-		else return false;
+		$this->_Sweep();
+		return ($r>=1);
 	}
 	/**
 	 * Destroys current session, removing all session variables and parameters
@@ -173,6 +174,19 @@ class SessionManager extends Model
 	function CurrentUser()
 	{
 		return $this->UserID;
+	}
+
+	/**
+	 * Checks whether or not a session is logged in
+	 * @param string $SessionID
+	 * @return boolean
+	 */
+	function IsLoggedIn($SessionID=null)
+	{
+		if ($SessionID===null)
+			$SessionID=$this->SessionID();
+		$Result=jf::SQL("SELECT COUNT(*) AS Result FROM {$this->TablePrefix()}session WHERE SessionID=? AND UserID!=0",$SessionID);
+		return $Result[0]['Result']>=1;
 	}
 }
 

@@ -112,13 +112,47 @@ class LibUserTest extends JDbTest
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
 
 		$this->assertTrue(jf::$User->Login("myUsername", "myPassword"));
-		//already logged in
-		$this->assertFalse($r=jf::$User->Login("myUsername", "myPassword"));
+		//already logged in, default mode is overwrite
+		$this->assertTrue($r=jf::$User->Login("myUsername", "myPassword"));
 		jf::$User->Login("wrong_username", "myPassword");
 		$this->assertTrue(jf::$User->IsLoggedIn($userid));
 		$this->assertEquals($userid,jf::CurrentUser());
 		jf::$User->Logout();
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
+	}
+	
+	function testExistingLogin()
+	{
+		$userid=jf::$User->CreateUser("myUsername", "myPassword");
+		$this->assertFalse(jf::$User->IsLoggedIn($userid));
+		
+		\jf\UserManager::$MultipleLoginPolicy=\jf\MultipleLogin::Overwrite;
+		$this->assertTrue(jf::$User->Login("myUsernamE", "myPassword"));
+		$this->assertTrue(jf::$User->IsLoggedIn($userid));
+
+		$this->assertTrue(jf::$User->Login("myUsername", "myPassword"));
+		$this->assertTrue(jf::$User->Login("myUsername", "myPassword"));
+		$this->assertTrue(jf::$User->IsLoggedIn($userid));
+
+
+		jf::$User->LogoutAll($userid);
+		\jf\UserManager::$MultipleLoginPolicy=\jf\MultipleLogin::Reject;
+		$this->assertTrue(jf::$User->Login("myUsernamE", "myPassword"));
+		$this->assertNull(jf::$User->Login("myUsername", "myPassword"));
+		$this->assertTrue(jf::$User->IsLoggedIn($userid));
+		
+		\jf\UserManager::$MultipleLoginPolicy=\jf\MultipleLogin::Allowed;
+		$this->assertTrue(jf::$User->Login("myUsernamE", "myPassword"));
+		$this->assertTrue(jf::$User->Login("myUsername", "myPassword"));
+		$this->assertTrue(jf::$User->IsLoggedIn($userid));
+		return;
+
+		for ($i=0;$i<100;++$i)
+			$this->assertTrue(jf::$User->Login("myUsername", "myPassword"));
+		$this->assertGreater(100,jf::$User->LoginCount($userid));
+		jf::$User->LogoutAll($userid);
+		$this->assertEquals(0,jf::$User->LoginCount($userid));
+		
 	}
 
 	function testUserCount()
