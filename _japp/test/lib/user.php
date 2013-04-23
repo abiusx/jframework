@@ -99,20 +99,21 @@ class LibUserTest extends JDbTest
 		$userid=jf::$User->CreateUser("myUsername", "myPassword");
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
 		
-		jf::$User->Login("myUsernamE", "wrong_password");
+		$this->assertFalse(jf::$User->Login("myUsernamE", "wrong_password"));
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
 		
-		jf::$User->Login("wrong_username", "myPassword");
+		$this->assertFalse(jf::$User->Login("wrong_username", "myPassword"));
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
 		
-		jf::$User->Login("myUsernamE", "myPassword");
+		$this->assertTrue(jf::$User->Login("myUsernamE", "myPassword"));
 		$this->assertTrue(jf::$User->IsLoggedIn($userid));
 		
 		jf::$User->Logout($userid);
 		$this->assertFalse(jf::$User->IsLoggedIn($userid));
 
-		jf::$User->Login("myUsername", "myPassword");
-		jf::$User->Login("myUsername", "myPassword");
+		$this->assertTrue(jf::$User->Login("myUsername", "myPassword"));
+		//already logged in
+		$this->assertFalse($r=jf::$User->Login("myUsername", "myPassword"));
 		jf::$User->Login("wrong_username", "myPassword");
 		$this->assertTrue(jf::$User->IsLoggedIn($userid));
 		$this->assertEquals($userid,jf::CurrentUser());
