@@ -150,7 +150,7 @@ class RBACManager extends Model
 				/* TU.ID=? */
 				TUrel.UserID=?
 				AND
-				TPDirect.ID=?
+				TPdirect.ID=?
 			" );
 		}
 		$this->ps_Check->execute ( $UserID, $PermissionID );
