@@ -6,24 +6,24 @@
  * @entity(repositoryClass="UserRepository")
  * @InheritanceType("JOINED")
  * @DiscriminatorColumn(name="discriminator", type="string")
- * @DiscriminatorMap({"User" = "User", "Xuser" = "Xuser", "MyUser"="MyUser"})
+ * @DiscriminatorMap({"User" = "User", "Xuser" = "Xuser", "AppUser"="AppUser"})
  * */
-class User
+class User extends JModel
 {
     /**
      * @GeneratedValue @Id @Column(type="integer")
      * @var string
      */
-    public $ID;
+    protected $ID;
 	public function ID()
 	{
 		return $this->ID;
 	}
     /**
-     * @Column(type="string",unique="true")
+     * @Column(type="string",unique=true)
      * @var string
      */
-    public $Username;
+    protected $Username;
 	public function Username()
 	{
 		return $this->Username;
@@ -32,8 +32,7 @@ class User
      * @Column(type="string")
      * @var string
      */
-    public $Password;
-    
+    protected $Password;
     /**
      * 
      * Password hash of a user
@@ -44,12 +43,28 @@ class User
     	return $this->Password;
     }
 
+    /**
+     * @Column(type="string")
+     * @var string
+     */
+    protected $Salt;
+    
+    /**
+     * @Column(type="float")
+     * @var float
+     */
+    protected $Protocol;
+    
+    
+    /**
+     * @param string $Username
+     * @param string $Password
+     */
     function __construct($Username=null,$Password=null)
     {
     	if ($Username)
     	{
     		$this->Username=$Username;
-    		$this->Password=j::$Session->SafeHashedPassword($Username, $Password);
     	}
     		
     }

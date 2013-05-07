@@ -5,3 +5,4 @@
 
 //Add autoload rules
 #\jf\Autoload::AddRuleArray(array("Classname"=>jf::root()."/app/model/filepath.php"));
+DoctrinePlugin::Load();

@@ -1,7 +1,5 @@
 <?php
 /*
- *  $Id$
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -15,7 +13,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
+ * and is licensed under the MIT license. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -28,47 +26,67 @@ use Symfony\Component\Console\Input\InputArgument,
     Doctrine\ORM\Tools\SchemaTool;
 
 /**
- * Command to update the database schema for a set of classes based on their mappings.
+ * Command to generate the SQL needed to update the database schema to match
+ * the current mapping information.
  *
- * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
- * @version $Revision$
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
+ * @author  Ryan Weaver <ryan@thatsquality.com>
  */
 class UpdateCommand extends AbstractCommand
 {
+    protected $name = 'orm:schema-tool:update';
+
     /**
      * @see Console\Command\Command
      */
     protected function configure()
     {
         $this
-        ->setName('orm:schema-tool:update')
+        ->setName($this->name)
         ->setDescription(
-            'Processes the schema and either update the database schema of EntityManager Storage Connection or generate the SQL output.'
+            'Executes (or dumps) the SQL needed to update the database schema to match the current mapping metadata.'
         )
         ->setDefinition(array(
             new InputOption(
                 'complete', null, InputOption::VALUE_NONE,
                 'If defined, all assets of the database which are not relevant to the current metadata will be dropped.'
             ),
+
             new InputOption(
                 'dump-sql', null, InputOption::VALUE_NONE,
-                'Instead of try to apply generated SQLs into EntityManager Storage Connection, output them.'
+                'Dumps the generated SQL statements to the screen (does not execute them).'
             ),
             new InputOption(
                 'force', null, InputOption::VALUE_NONE,
-                "Don't ask for the incremental update of the database, but force the operation to run."
+                'Causes the generated SQL statements to be physically executed against your database.'
             ),
-        ))
-        ->setHelp(<<<EOT
-Processes the schema and either update the database schema of EntityManager Storage Connection or generate the SQL output.
-Beware that if --complete is not defined, it will do a save update, which does not delete any tables, sequences or affected foreign keys.
-If defined, all assets of the database which are not relevant to the current metadata are dropped by this command.
+        ));
+
+        $this->setHelp(<<<EOT
+The <info>%command.name%</info> command generates the SQL needed to
+synchronize the database schema with the current mapping metadata of the
+default entity manager.
+
+For example, if you add metadata for a new column to an entity, this command
+would generate and output the SQL needed to add the new column to the database:
+
+<info>%command.name% --dump-sql</info>
+
+Alternatively, you can execute the generated queries:
+
+<info>%command.name% --force</info>
+
+Finally, be aware that if the <info>--complete</info> option is passed, this
+task will drop all database assets (e.g. tables, etc) that are *not* described
+by the current metadata. In other words, without this option, this task leaves
+untouched any "extra" tables that exist in the database, but which aren't
+described by any metadata.
 EOT
         );
     }
@@ -78,26 +96,36 @@ EOT
         // Defining if update is complete or not (--complete not defined means $saveMode = true)
         $saveMode = ($input->getOption('complete') !== true);
 
-        if ($input->getOption('dump-sql') === true) {
-            $sqls = $schemaTool->getUpdateSchemaSql($metadatas, $saveMode);
-            $output->write(implode(';' . PHP_EOL, $sqls) . PHP_EOL);
-        } else if ($input->getOption('force') === true) {
-            $output->write('Updating database schema...' . PHP_EOL);
+        $sqls = $schemaTool->getUpdateSchemaSql($metadatas, $saveMode);
+        if (0 == count($sqls)) {
+            $output->writeln('Nothing to update - your database is already in sync with the current entity metadata.');
+
+            return;
+        }
+
+        $dumpSql = (true === $input->getOption('dump-sql'));
+        $force = (true === $input->getOption('force'));
+        if ($dumpSql && $force) {
+            throw new \InvalidArgumentException('You can pass either the --dump-sql or the --force option (but not both simultaneously).');
+        }
+
+        if ($dumpSql) {
+            $output->writeln(implode(';' . PHP_EOL, $sqls));
+        } else if ($force) {
+            $output->writeln('Updating database schema...');
             $schemaTool->updateSchema($metadatas, $saveMode);
-            $output->write('Database schema updated successfully!' . PHP_EOL);
+            $output->writeln(sprintf('Database schema updated successfully! "<info>%s</info>" queries were executed', count($sqls)));
         } else {
-            $output->write('ATTENTION: This operation should not be executed in an production enviroment.' . PHP_EOL);
-            $output->write('Use the incremental update to detect changes during development and use' . PHP_EOL);
-            $output->write('this SQL DDL to manually update your database in production.' . PHP_EOL . PHP_EOL);
+            $output->writeln('<comment>ATTENTION</comment>: This operation should not be executed in a production environment.');
+            $output->writeln('           Use the incremental update to detect changes during development and use');
+            $output->writeln('           the SQL DDL provided to manually update your database in production.');
+            $output->writeln('');
 
-            $sqls = $schemaTool->getUpdateSchemaSql($metadatas, $saveMode);
+            $output->writeln(sprintf('The Schema-Tool would execute <info>"%s"</info> queries to update the database.', count($sqls)));
+            $output->writeln('Please run the operation by passing one of the following options:');
 
-            if (count($sqls)) {
-                $output->write('Schema-Tool would execute ' . count($sqls) . ' queries to update the database.' . PHP_EOL);
-                $output->write('Please run the operation with --force to execute these queries or use --dump-sql to see them.' . PHP_EOL);
-            } else {
-                $output->write('Nothing to update. The database is in sync with the current entity metadata.' . PHP_EOL);
-            }
+            $output->writeln(sprintf('    <info>%s --force</info> to execute the command', $this->getName()));
+            $output->writeln(sprintf('    <info>%s --dump-sql</info> to dump the SQL statements to the screen', $this->getName()));
         }
     }
 }

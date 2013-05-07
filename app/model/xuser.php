@@ -1,7 +1,7 @@
 <?php
 
 /**
-* @Entity @Table(name="jfp_xuser")
+* @Entity @Table(name="jf_xuser")
 * @InheritanceType("JOINED")
 */
 class Xuser extends User

@@ -14,7 +14,7 @@ class Driver implements \Doctrine\DBAL\Driver
     /**
      * Attempts to connect to the database and returns a driver connection on success.
      *
-     * @return Doctrine\DBAL\Driver\Connection
+     * @return \Doctrine\DBAL\Driver\Connection
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
@@ -34,10 +34,10 @@ class Driver implements \Doctrine\DBAL\Driver
     private function _constructPdoDsn(array $params)
     {
         $dsn = 'pgsql:';
-        if (isset($params['host'])) {
+        if (isset($params['host']) && $params['host'] != '') {
             $dsn .= 'host=' . $params['host'] . ' ';
         }
-        if (isset($params['port'])) {
+        if (isset($params['port']) && $params['port'] != '') {
             $dsn .= 'port=' . $params['port'] . ' ';
         }
         if (isset($params['dbname'])) {
