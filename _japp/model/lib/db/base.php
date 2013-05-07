@@ -252,7 +252,8 @@ abstract class BaseDatabase extends trait_DatabaseProfiler
 			return $statement->rowCount ();
 		elseif ($type == "SELECT")
 		{
-			return $statement->fetchAll();
+			$r=$statement->fetchAll();
+			return $r;
 		}
 		else
 			return null;

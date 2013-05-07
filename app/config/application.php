@@ -49,7 +49,7 @@ define ( "SiteRoot", HttpRequest::Root () );
  */
 if (jf::$RunMode->IsDevelop() or jf::$RunMode->IsCLI())
 {
- 	\jf\DatabaseManager::AddConnection(new \jf\DatabaseSetting("mysqli", "jf4", "root", ""));
+ 	\jf\DatabaseManager::AddConnection(new \jf\DatabaseSetting("mysqli", "jf4", "jf4", "jf4"));
 }
 elseif (jf::$RunMode->IsDeploy())
 {

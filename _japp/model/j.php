@@ -382,6 +382,10 @@ class jf
         self::$RBAC = &$App->RBAC;
         self::$Security=&$App->Security;
     }
+	static function TablePrefix()
+	{
+		return DatabaseManager::Configuration()->TablePrefix;
+	}
 }
 class j extends jf
 {

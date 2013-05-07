@@ -163,7 +163,8 @@ class Autoload
 				}
 				return false;
 			}
-			else 										//its a core module, and loaded.
+			else 
+														//its a core module, and loaded.
 				return true;
 		}
 		require_once (self::$List[$Classname]);
@@ -211,9 +212,9 @@ class Autoload
 	 * An array of callbacks to handle autoloads
 	 * if one of them returns true, autoload is successful and is stopped, otherwise next one is processed
 	 * last one attached is most priority
-	 * @var string $callback
+	 * @var array $callback
 	 */
-	private static $Handlers=array();
+	static $Handlers=array();
 
 	/**
 	 * Add an autoload handler callback. this is called whenever an autoload is required. last added handler has most priority

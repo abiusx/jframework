@@ -8,7 +8,6 @@ namespace jf;
  */
 class TestLauncher extends BaseLauncher
 {
-	public static $PHPUnit="jf/plugin/phpunit";
 	
 	
 	function  __construct($Request)
@@ -110,7 +109,7 @@ class TestLauncher extends BaseLauncher
 	 */
 	private function LoadFramework()
 	{
-		jf::import(self::$PHPUnit."/Autoload");
+		\jf\Autoload::AddHandler(function($Classname){ return PhpunitLoaderPlugin::Autoload($Classname);});
 		jf::import("jf/model/namespace/public/test");
 		jf::import("jf/model/test/listener");
 	}

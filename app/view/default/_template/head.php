@@ -8,6 +8,6 @@
 <link rel="stylesheet" href="<?php echo (jf::url());?>/style/base.css" />
 <script src="<?php echo jf::url();?>/script/jquery-1.9.1.min.js"></script>
 <?php echo $this->HeadData();?>
-<base href="<?php echo jf::url();?>" />
+<base href="<?php echo jf::url();?>/" />
 </head>
 <body>
