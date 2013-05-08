@@ -252,7 +252,7 @@ $(function(){
 	width:200px;
 			
 }
-.jForm {
+.jFormFrame {
 	padding:20px;
 	margin:10px;
 	border:1px gray solid;

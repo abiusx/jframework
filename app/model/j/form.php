@@ -4,6 +4,7 @@ class jForm extends jWidget
 	const Method_GET="get";
 	const Method_POST="post";
 
+	public $Action=null;
 	/**
 	 * Sets form data.
 	 * Should be done after all widgets are instantiated.
@@ -36,8 +37,10 @@ class jForm extends jWidget
 	function IsValid()
 	{
 		foreach ($this->Children as $child)
+		{
 			if ($child->IsValid()===false)
 				return false;
+		}
 		return true;
 	}
 	
@@ -48,10 +51,12 @@ class jForm extends jWidget
 	{
 		$csrf=new jFormCsrf($this,$this->Name()."_csrf");
 	}
-	
-	function __construct(jWidget $Parent=null,$Method=jForm::Method_POST)
+
+	public $Label=null;
+	function __construct($Parent=null,$Label=null,$Method=jForm::Method_POST)
 	{
 		parent::__construct($Parent);
+		$this->Label=$Label;		
 		$this->Method=$Method;
 		$this->CSRFGuard();
 	}
@@ -65,12 +70,17 @@ class jForm extends jWidget
 	}
 	function Present()
 	{
-		?>		
-<form <?php echo $this->DumpClass();?> name='<?php echo $this->Name();?>' id='<?php echo $this->Name();?>' method='post'>
+		?>
+<fieldset class='jFormFrame' id='<?php echo $this->Name();?>_frame'>
+	<?php if ($this->Label) {?><legend><?php exho ($this->Label);?></legend><?php }?>
+<form <?php echo $this->DumpClass();?> name='<?php echo $this->Name();?>' id='<?php echo $this->Name();?>'<?php 
+if ($this->Action) {?> action="<?php exho($this->Action);?>" <?php } 
+?> method='post' enctype='multipart/form-data'>
 	<?php
 		$this->PresentChildren();
 		?>
 </form>
+</fieldset>
 		<?php
 	}
 	function JS()
