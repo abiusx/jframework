@@ -196,7 +196,7 @@ namespace jf;
 function PresentExceptionStack($Exception)
 {
 	$StackBacktrace=	$Exception->getTrace ();
-	return $this->PresentErrorStack($StackBacktrace,0);
+	return PresentErrorStack($StackBacktrace,0);
 }
 function PresentErrorStack($StackBacktrace,$omit=2)
 {
