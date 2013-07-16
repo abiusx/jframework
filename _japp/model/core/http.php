@@ -40,7 +40,7 @@ class HttpRequest
 	 */	
 	static function UserAgent()
 	{
-		return $_SERVER['HTTP_USER_AGENT'];
+		return isset($_SERVER['HTTP_USER_AGENT'])?$_SERVER['HTTP_USER_AGENT']:null;
 	}	
 	/**
 	 * Port of client connection

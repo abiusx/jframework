@@ -43,6 +43,9 @@ class Autoload
 		$Array=array(
 				"Model"=>"model/base/model",
 				"Controller"=>"model/base/control",
+				"AutoController"=>"model/base/control/auto",
+				"CatchController"=>"model/base/control/catch",
+				"RestController"=>"model/base/control/rest",
 				"View"=>"model/base/view",
 				"Plugin"=>"model/base/plugin",
 				"Test"=>"model/base/test",

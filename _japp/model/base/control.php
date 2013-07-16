@@ -147,47 +147,7 @@ abstract class Controller extends Model
 }
 
 
-/**
- * AutoController automatically presents the corresponding view
- * it is intended for controllers with no code.
- *
- */
-class AutoController extends Controller
-{
 
-	function __construct()
-	{
-		$this->View=new View();
-	}
-	/**
-	 * Provide the view module to this and it presents it.
-	 * @see \jf\Controller::Start()
-	 */
-	function Start()
-	{
-		$arg = func_get_arg ( 0 );
-		return $this->View->Present ( $this->ViewModule($arg) );
-	}
-}
-abstract class CatchController extends Controller
-{
-	function Start()
-	{
-		#FIXME: this should send relative request instead of the whole request
-		return $this->Handle(jf::$Request);	
-	}
-	/**
-	 * Catched requests are delivered here, with their relative paths
-	 * @param string $RelativeRequest
-	 */
-	abstract function Handle($RelativeRequest);
-	
-	/*function Present()
-	{
-		$arg=func_get_arg(0); //view module
-		#TODO: present the given view
-	}*/
-}
 
 
 ?>

@@ -30,9 +30,9 @@ class FileLauncher extends BaseLauncher
 		$Type=self::$StaticContentPrefix[$Type];
 		array_unshift($Parts,$Type);
 
-		$file=jf::root().DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$Parts);
-		
-		
+		$file=realpath(jf::root().DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$Parts));
+		if (!$file)
+			return false;
 		$FileMan=new DownloadManager();
 		return $FileMan->Feed($file);
 	}

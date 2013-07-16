@@ -3,8 +3,10 @@
 # this serves as a means of defining classes in public namespace
 #
 abstract class JControl extends \jf\Controller {}
+abstract class JRestControl extends \jf\RestController {}
 abstract class JCatchControl extends \jf\CatchController {}
 abstract class JController extends JControl {}
+abstract class JRestController extends JRestControl {}
 abstract class JCatchController extends JCatchControl {}
 
 class JModel extends \jf\Model {}
