@@ -22,6 +22,7 @@ class jForm extends jWidget
 			throw new Exception("Unknown source of form data. Please provide form data manually.");
 		if ($FormData===null) throw new Exception("No form data provided to set.");
 		foreach ($this->Children as $child)
+			if ($child instanceof jFormWidget)
 			$child->SetValue($FormData);
 	}
 	/**
@@ -38,7 +39,8 @@ class jForm extends jWidget
 	{
 		foreach ($this->Children as $child)
 		{
-			if ($child->IsValid()===false)
+			
+			if ( $child instanceof jFormWidget  && $child->IsValid()===false)
 				return false;
 		}
 		return true;

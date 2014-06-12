@@ -36,13 +36,18 @@ class jFormDropdown extends jFormWidget
 		
 		$this->DumpLabel();
 		$index=0;
-		?>	<select <?php $this->DumpAttributes();?>>
+		?>	<select <?php $this->DumpClass();$this->DumpID();$this->DumpName()?>>
 <?php
 		$isAssoc=$this->IsAssociative($this->Items);
 		foreach ($this->Items as $value=>$text)
 		{
 			if (!$isAssoc) $value=$text;
-			?>		<option value='<?php echo $value;?>' id='<?php echo $this->Name()."_".$value;?>'><?php echo $text;?></option>
+			if ($this->Value()==$value)
+				$selected=" selected='selected' ";
+			else
+				$selected="";
+	 		
+			?>		<option <?php echo $selected;?>value='<?php echo $value;?>' id='<?php echo $this->Name()."_".$value;?>'><?php echo $text;?></option>
 <?php
 		} 
 		 

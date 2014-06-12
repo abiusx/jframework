@@ -14,7 +14,10 @@ class jFormUpload extends jFormWidget
 		$file=$_FILES[$this->Name()];
 		if ($file["error"] > 0) return $file['error'];
 		if ($this->MaxSize !==null && $file['size']>$this->MaxSize) return UPLOAD_ERR_FORM_SIZE;
-		return move_uploaded_file($file['tmp_name'], $Where);
+		$r=move_uploaded_file($file['tmp_name'], $Where);
+		if ($r)
+			$this->StoredLocation=$Where;	
+		return $r;
 		
 	}
 
@@ -42,7 +45,16 @@ class jFormUpload extends jFormWidget
 		});
 		
 	}
-	
+	/**
+	 * After using put, this variable holds the location where the file was put
+	 * @var string
+	 */
+	public $StoredLocation;
+	/**
+	 * Always returns the name of the file from client machine.
+	 * @var string
+	 * @see jFormWidget::Value()
+	 */
 	function Value()
 	{
 		if (isset($_FILES[$this->Name()]))

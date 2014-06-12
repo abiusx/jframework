@@ -31,8 +31,13 @@ abstract class jFormWidget extends jWidget
 		}
 		else
 			$this->Value=$FormData;
+		return $this;
 	}
 
+	function __toString()
+	{
+		return $this->Value();
+	}
 	/**
 	 * Returns the value of this instance. 
 	 * @return mixed|null
@@ -80,6 +85,7 @@ abstract class jFormWidget extends jWidget
 		}
 		else
 			throw new InvalidValidationException("You can only provide a regex or a closure for validation.");
+		return $this;
 	}
 	
 	/**
@@ -139,7 +145,7 @@ abstract class jFormWidget extends jWidget
 		if ($this->Label):
 		?>	<label class='jWidget_label' for='<?php echo $this->Name()?>'><?php echo $this->Label;?></label>
 <?php	endif;
-			
+		return $this;
 	}
 	
 	/**
@@ -148,7 +154,12 @@ abstract class jFormWidget extends jWidget
 	 */
 	protected function DumpAttributes()
 	{
-		echo "{$this->DumpName()} {$this->DumpID()} {$this->DumpClass()} {$this->DumpValue()} {$this->DumpStyle()}";	
+		$this->DumpName()->
+		DumpID()->
+		DumpClass()->
+		DumpValue()->
+		DumpStyle();
+		return $this;	
 	}
 	/**
 	 * Dumps value of a form input
@@ -159,6 +170,7 @@ abstract class jFormWidget extends jWidget
 		if ($this->Value()!==null):
 		?>	value='<?php exho($this->Value());?>' <?php 
 		endif;
+		return $this;
 	}		
 	/**
 	 * Dump name of a form field
@@ -166,6 +178,7 @@ abstract class jFormWidget extends jWidget
 	protected function DumpName()
 	{
 		?>	name='<?php exho($this->Name());?>' <?php 
+		return $this;
 	}
 	/**
 	 * Dump ID of the field
@@ -173,6 +186,7 @@ abstract class jFormWidget extends jWidget
 	protected function DumpID()
 	{
 		?>	id='<?php exho($this->Name());?>' <?php 
+		return $this;
 	}
 	/**
 	 * Dump CSS class
@@ -182,6 +196,7 @@ abstract class jFormWidget extends jWidget
 	protected function DumpClass()
 	{
 		echo "class='jWidget {$this->Class}".($this->IsValid()===false?" jWidget_invalid":"")."'";
+		return $this;
 	}
 	/**
 	 * Dump description of the input
@@ -190,6 +205,7 @@ abstract class jFormWidget extends jWidget
 	{
 // 		if ($this->Description)
 		echo "<span class='jWidget_description'>{$this->Description}</span>\n";
+		return $this;
 	}
 	
 	/**

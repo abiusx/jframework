@@ -12,7 +12,7 @@ class jFormInputFloat extends jFormInput
 		parent::__construct($Parent,$Label);
 		if ($maxLength===-1)
 			$maxLength=4096;
-		$this->SetValidation('/^[0-9]{'.$minLength.','.$maxLength.'}\.[0-9]$/');
+		$this->SetValidation('/^[0-9]{'.$minLength.','.$maxLength.'}\.?[0-9]?$/');
 		
 	}
 }

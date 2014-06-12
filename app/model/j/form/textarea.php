@@ -11,7 +11,7 @@ class jFormTextarea extends jFormWidget
 	{
 		
 		$this->DumpLabel();
-		?>	<textarea <?php $this->DumpAttributes();?>></textarea>
+		?>	<textarea <?php $this->DumpAttributes();?>><?php exho ($this->Value())?></textarea>
 <?php $this->DumpDescription();
 	}
 	

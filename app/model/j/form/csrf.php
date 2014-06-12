@@ -14,9 +14,13 @@ class jFormCsrf extends jFormWidget
 	{
 		$this->__setname($Name);
 		parent::__construct($Parent);
+		$OldToken=jf::LoadSessionSetting(jFormCsrf::SettingNamePrefix.$Name);
+		$this->Token=jf::$Security->RandomToken();
+		jf::SaveSessionSetting(jFormCsrf::SettingNamePrefix.$this->Name(), $this->Token,\jf\Timeout::HOUR);
+		
 		$this->SetValidation(
-				function ($Data)  use ($Name){ 
-					return jf::LoadSessionSetting(jFormCsrf::SettingNamePrefix.$Name)==$Data;
+				function ($Data)  use ($Name,$OldToken){ 
+					return $OldToken==$Data;
 				}
 		);
 	}
@@ -25,8 +29,6 @@ class jFormCsrf extends jFormWidget
 	function Present()
 	{
 		//only update the csrf token on the session when outputting the field.
-		$this->Token=jf::$Security->RandomToken();
-		jf::SaveSessionSetting(jFormCsrf::SettingNamePrefix.$this->Name(), $this->Token);
 		
 		echo "<input class='jWidget jFormCSRF' type='hidden' name='{$this->Name()}' value='{$this->Token}' />\n";
 	}
